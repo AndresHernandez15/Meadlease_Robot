@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ROS2
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Entorno
+.env
+venv/
+
+# PlatformIO
+firmware/*/. pio/
