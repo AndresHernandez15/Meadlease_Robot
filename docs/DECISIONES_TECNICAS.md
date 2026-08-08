@@ -141,10 +141,23 @@
 - **Estado:** Diferida (bonus post-defensa)
 - **Justificación:** filtro de alcance de prototipo — se prioriza memoria de sesión + registro estructurado en BD.
 
+### ADR-028 — Especificación completa de la trama UART STM32↔ESP32
+- **Estado:** Aceptada
+- **Contexto:** ADR-006 definió el formato general (trama binaria fija + CRC8) pero dejó la especificación de detalle pendiente para Fase 2 del roadmap.
+- **Decisión:** Dos líneas UART físicas dedicadas (STM32↔ESP32 Movilidad, STM32↔ESP32 Médica), no bus compartido con direccionamiento. Framing: `[START 0xAA][MSG_TYPE 1B][LEN 1B][PAYLOAD][CRC8 1B][END 0x55]`, CRC8 Maxim/Dallas (polinomio 0x31) calculado sobre `MSG_TYPE+LEN+PAYLOAD`, little-endian, baudrate 115200.
+- **Alternativa evaluada:** Bus UART compartido con byte de dirección para ambos ESP32.
+- **Por qué se descartó:** Con USARTs libres de sobra en el STM32F411, líneas dedicadas evitan el byte de dirección, evitan arbitraje de bus, y aíslan fallos — ruido o desconexión en el link de Movilidad no puede corromper el link de Médica. Costo adicional de pines es nulo dado el margen disponible.
+- **Mensajes definidos — link Movilidad:** `CMD_VELOCITY` (0x01, STM32→ESP32, 20Hz, VL/VR int16 mm/s) · `TELEMETRY` (0x81, ESP32→STM32, 50Hz, RPM izq/der + 5 distancias ultrasonido + bitmask de fallo por sensor + voltage/current del monitoreo de energía).
+- **Mensajes definidos — link Médica:** `CMD_DISPENSE` (0x02) · `CMD_MEASURE_VITALS` (0x03) · `CMD_VITALS_ARM` (0x04) · `RESP_DISPENSE` (0x82, incluye resultado consolidado de verificación ESP32-CAM) · `RESP_VITALS` (0x83).
+- **Decisión de telemetría de velocidad:** RPM ya calculado en el ESP32 Movilidad (no ticks crudos), reutilizando el cálculo que el ESP32 ya hace para su lazo de control PID — evita carga adicional de cómputo en el i3 del Dell.
+- **Ubicación del sensor de energía (INA3221 + divisor de voltaje):** lectura directa desde el ESP32 Movilidad, reportado dentro de `TELEMETRY` — no requiere link ni trama propia.
+- **Watchdog de seguridad:** si el ESP32 Movilidad no recibe `CMD_VELOCITY` en 500 ms, frena motores por su cuenta, independiente del botón físico de emergencia (ADR-007).
+- **Especificación completa (tablas de payload byte a byte):** ver `HARDWARE_FIRMWARE.md`, sección "Capa 2 — Comunicación PC ↔ Microcontroladores".
+
 ---
 
 ## Información faltante / pendiente de revisión
 
 - **Fechas de decisión** de cada ADR (el documento maestro no registra cuándo se tomó cada decisión, solo que fue "en la sesión de reformulación de agosto 2026") — si se quiere trazabilidad real tipo ADR, convendría fechar cada una.
 - **Autores/participantes por decisión:** no se distingue qué decisiones fueron discutidas con todo el equipo vs. solo Andrés+Claude.
-- Este archivo es una **compilación derivada** del documento maestro, no decisiones nuevas — al completar los vacíos identificados en los demás archivos (`HARDWARE_FIRMWARE.md`, `ROBOT_COGNICION.md`, etc.), probablemente surgirán ADRs nuevos (ej. especificación final de la trama UART, diseño del árbol py_trees) que deben añadirse aquí como ADR-028 en adelante.
+- Este archivo es una **compilación derivada** del documento maestro, no decisiones nuevas — al completar los vacíos identificados en los demás archivos (`ROBOT_COGNICION.md`, etc.), probablemente surgirán ADRs nuevos (ej. diseño del árbol py_trees) que deben añadirse aquí como ADR-029 en adelante.

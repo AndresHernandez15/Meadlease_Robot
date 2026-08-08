@@ -1,8 +1,6 @@
 # MEADLEASE — EXPRESIVIDAD / HMI
 
 > **Corresponde a:** `robot_hmi`
-> **Frecuencia de cambio:** Media.
-> Extraído de `MEADLEASE_REFORMULACION.md` (v1) — Capa 7 y Módulo 6. Pendiente de revisión manual — ver sección final.
 
 ---
 
@@ -40,7 +38,7 @@
 
 ## Información faltante / pendiente de revisión
 
-- **Enumeración de los "16 estados" del HMI:** el documento maestro menciona en la Fase 1 del roadmap "HMI: 16 estados + dashboard + mapa" pero nunca los lista ni los describe — falta definir cuáles son y su relación con los eventos del agente/BT.
+- **Enumeración de los estados del HMI:** no hay un número fijo predefinido de estados — se definen y se amplían según necesidad durante el desarrollo (evitar camisa de fuerza desde el diseño). Falta definir el set inicial y su relación con los eventos del agente/BT, con la expectativa de que crezca orgánicamente.
 - **Diseño visual concreto** (paleta de colores por estado/urgencia, wireframes de las pantallas, tipografía) — no está especificado más allá de la descripción funcional.
 - **Uso concreto del numpad MPR121:** explícitamente marcado como pendiente ("decisión pendiente es *para qué* se usa, no si se usa").
 - **Especificación de la pantalla "slideshow" de capacidades:** no se detalla contenido ni cuántas diapositivas/tarjetas incluye.

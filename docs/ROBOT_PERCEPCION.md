@@ -1,8 +1,6 @@
 # MEADLEASE — PERCEPCIÓN
 
 > **Corresponde a:** `robot_perception` (Juan)
-> **Frecuencia de cambio:** Media.
-> Extraído de `MEADLEASE_REFORMULACION.md` (v1) — Capa 3 y Módulo 1. Pendiente de revisión manual — ver sección final.
 
 *(Nota: `robot_perception` como paquete separado no es solo prolijidad — es la frontera de trabajo de Juan, quien solo necesita tocar esa carpeta sin fricción de coordinación con el resto del equipo.)*
 

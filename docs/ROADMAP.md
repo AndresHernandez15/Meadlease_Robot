@@ -1,13 +1,8 @@
 # MEADLEASE — ROADMAP DE IMPLEMENTACIÓN
 
-> **Frecuencia de cambio:** Alta — actualizar semana a semana.
-> Extraído de `MEADLEASE_REFORMULACION.md` (v1), Sección 6. Sin fechas asignadas todavía — orden lógico por dependencias. Pendiente de revisión manual — ver sección final.
-
----
-
 ## FASE 0 — Cimientos
 
-- [ ] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
+- [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
 - [ ] `venv --system-site-packages` + `uv` en el Dell
 - [ ] VSCode + Remote-SSH configurado entre el Asus y el Dell
 - [ ] Esquema SQLite creado a mano (`patient.db` + tabla de notas)

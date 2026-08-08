@@ -1,8 +1,6 @@
 # MEADLEASE — COGNICIÓN Y AGENCIA
 
 > **Corresponde a:** `robot_cognition`
-> **Frecuencia de cambio:** Alta — es el módulo más grande.
-> Extraído de `MEADLEASE_REFORMULACION.md` (v1) — Capa 5, Módulo 2, Módulo 5, Sección 3 (herramientas del agente) y Capa 9. Pendiente de revisión manual — ver sección final.
 
 ---
 

@@ -1,8 +1,6 @@
 # MEADLEASE — MOVILIDAD Y NAVEGACIÓN
 
 > **Corresponde a:** `robot_bringup`
-> **Frecuencia de cambio:** Media.
-> Extraído de `MEADLEASE_REFORMULACION.md` (v1) — Capa 4 y Módulo 3. Pendiente de revisión manual — ver sección final.
 
 ---
 
@@ -33,7 +31,7 @@
 
 ## Información faltante / pendiente de revisión
 
-- **Cinemática/tipo de tracción del robot** (diferencial u otro), dimensiones y peso del chasis — necesario para configurar el plugin de controlador de Nav2 (ver también `HARDWARE_FIRMWARE.md`).
+- **Dimensiones y peso del chasis** — la cinemática ya está definida (tracción diferencial, 2 motores traseros + rueda loca delantera, ver `HARDWARE_FIRMWARE.md`); falta el dato físico de dimensiones/peso para completar la configuración del plugin de controlador diferencial de Nav2.
 - **Layout y cantidad de waypoints** para el espacio real de la demo — no definidos aún.
 - **Dimensiones del espacio de prueba/demo** (relevante para tiempos de navegación en el guion de la Fase 5 del roadmap).
 - **Parámetros concretos de Nav2** (velocidades máximas, radios de tolerancia, perfil del costmap) — no especificados, quedan para configuración durante Fase 1/3.
