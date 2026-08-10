@@ -7,7 +7,7 @@
 | Universidad | Universidad Tecnológica de Bolívar — Ing. Mecatrónica, Biomédica y Sistemas |
 | Deadline funcional | 1 de Noviembre de 2026 |
 | Nombre del proyecto | Meadlease |
-| Nombre del robot | **EN DEFINICIÓN.** Criterio: fácil de pronunciar en español sin conocimiento de inglés, no genérico |
+| Nombre del robot | **Koda** — del japonés *kodawari*, que refleja tanto la filosofía de diseño del proyecto como el comportamiento esperado del robot: atención al detalle y ausencia de errores (ej. en una dosis de medicamento). Meadlease sigue siendo el nombre del proyecto/tesis; Koda es solo el nombre del robot |
 | Formato de entrega | Prototipo/demo, no producto terminado. Sustentación en vivo de 15 minutos + posibles clips de video para autonomía de largo plazo no demostrable en vivo |
 | Motivo de la reformulación | El sistema anterior se construyó módulo por módulo, optimizando cada uno en aislamiento, sin pensar en integración conjunta ni en cómo cada decisión afecta latencia/memoria/complejidad del sistema completo |
 
@@ -120,7 +120,6 @@ meadlease/
 
 ## Información faltante / pendiente de revisión
 
-- **Nombre del robot:** aún sin decidir.
 - **Ubicación del nombre** (HMI vs. carcasa física): pendiente de decisión de diseño físico.
 - **Criterios/rúbrica de evaluación institucional:** no hay referencia a qué evalúa formalmente el jurado en la sustentación — si existe documentación de la universidad al respecto, complementar aquí.
 - **Política de privacidad/retención de datos médicos en SQLite:** no se especifica cifrado en reposo ni tiempo de retención de embeddings faciales/signos vitales — relevante por ser datos biomédicos sensibles.

@@ -87,7 +87,7 @@
 ### ADR-016 — Wake word: openWakeWord
 - **Estado:** Aceptada
 - **Alternativas evaluadas:** Vosk (usado previamente como wake word), Porcupine.
-- **Por qué se descartaron:** Porcupine tiene límite de "1 dispositivo activo" en tier gratuito. openWakeWord corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial) y es más preciso en benchmarks propios con mínimo consumo de CPU.
+- **Por qué se descartaron:** Porcupine ya era poco práctico por su límite de "1 dispositivo activo" en tier gratuito, y quedó **eliminado por completo** como opción tras el cierre total del plan gratuito de Picovoice (actualización agosto 2026). openWakeWord corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial) y es más preciso en benchmarks propios con mínimo consumo de CPU.
 
 ### ADR-017 — Comandos offline: Vosk acotado solo a emergencia
 - **Estado:** Aceptada (revisión de decisión previa)
@@ -99,7 +99,7 @@
 - **Estado:** Aceptada
 - **Alternativa previa:** Silero VAD.
 - **Alternativas evaluadas:** WebRTC VAD, Cobra VAD (Picovoice).
-- **Por qué se cambió/descartaron:** TEN VAD tiene ~32% menos consumo de CPU que Silero y menor latencia de corte de habla. Cobra VAD descartado por ser comercial (mismo problema de licenciamiento que Porcupine).
+- **Por qué se cambió/descartaron:** TEN VAD tiene ~32% menos consumo de CPU que Silero y menor latencia de corte de habla. Cobra VAD ya era problemático por ser comercial (mismo problema de licenciamiento que Porcupine), y quedó **eliminado por completo** como opción tras el cierre total del plan gratuito de Picovoice (actualización agosto 2026).
 
 ### ADR-019 — STT: Groq Whisper large-v3-turbo
 - **Estado:** Aceptada (sin cambio respecto al sistema anterior)

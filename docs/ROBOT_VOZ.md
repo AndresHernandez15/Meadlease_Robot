@@ -23,9 +23,9 @@
 
 | Componente | Decisión | Justificación |
 |---|---|---|
-| Wake word | **openWakeWord** (reemplaza Vosk-como-wake-word de decisión previa, y a Porcupine original) | Corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial), más preciso que Porcupine en benchmarks propios, mínimo CPU. Porcupine descartado por límite de "1 dispositivo activo" en tier gratuito |
+| Wake word | **openWakeWord** (reemplaza Vosk-como-wake-word de decisión previa, y a Porcupine original) | Corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial), más preciso que Porcupine en benchmarks propios, mínimo CPU. Porcupine queda **eliminado por completo** de cualquier opción o benchmark: Picovoice eliminó su plan gratuito, no solo el límite de "1 dispositivo activo" que ya lo hacía poco práctico |
 | Comandos offline | **Vosk, acotado exclusivamente a comandos de emergencia y reanudación** ("detente", "ayuda", "emergencia", "reanudar") | Decisión revisada: comandos rígidos de propósito general generaban falsos positivos y quitaban flexibilidad al robot (probado en sistema anterior). Todo lo demás pasa por el agente con lenguaje libre. "Reanudar" libera el reflejo de parada del Behavior Tree (ver `ROBOT_COGNICION.md`, Módulo 5C). Alternativa a evaluar: **sherpa-onnx** (consolidaría STT+TTS+VAD+wake word bajo un solo runtime ONNX) |
-| VAD | **TEN VAD** (reemplaza recomendación inicial de Silero VAD) | Mayor precisión, ~32% menos CPU que Silero, latencia de corte de habla mucho menor (crítico para naturalidad conversacional). Cobra VAD (Picovoice) descartado por ser comercial/mismo problema de licenciamiento que Porcupine |
+| VAD | **TEN VAD** (reemplaza recomendación inicial de Silero VAD) | Mayor precisión, ~32% menos CPU que Silero, latencia de corte de habla mucho menor (crítico para naturalidad conversacional). Cobra VAD (Picovoice) queda **eliminado por completo** de cualquier opción o benchmark, por el mismo motivo que Porcupine — Picovoice ya no tiene plan gratuito |
 | STT | **Groq Whisper large-v3-turbo**, sin cambio | Confirmado como opción cloud más rápida en 2026 (~216x tiempo real, más barato que alternativas) |
 | TTS | **Azure `es-PE-CamilaNeural`** (primario, probado) + **Kokoro TTS** (candidato a validar) | Kokoro: 82M parámetros, Apache 2.0, corre 100% local en CPU, soporta español. Se evalúa únicamente como alternativa a probar en el benchmark de TTS (calidad/latencia en el i3) — **no** se busca independencia de red con esta prueba: el robot es dependiente de conexión a internet para su operación conversacional normal (STT y LLM en la nube), y esa dependencia ya está contemplada como limitación aceptada del proyecto. Pendiente de benchmark real en el i3 |
 | Filler / latencia percibida | Streaming LLM→TTS frase por frase (mayor impacto real) + banco de frases cortas pre-escritas para llamadas a herramientas que toman tiempo real (navegar, dispensar, medir) | Técnica documentada como estándar de producción en agentes de voz 2026 |
@@ -38,8 +38,8 @@ Todos deben medirse en el hardware real (Dell Inspiron, micrófono real), no con
 
 | # | Benchmark | Opciones a comparar | Métrica clave |
 |---|---|---|---|
-| 1 | Wake word | Porcupine vs openWakeWord | Precisión (falsos positivos/negativos) con voz real y nombre del robot, consumo CPU |
-| 2 | VAD | WebRTC VAD vs Silero VAD vs TEN VAD vs Cobra VAD | Latencia de corte de habla, precisión con ruido ambiente real, consumo CPU |
+| 1 | Wake word | openWakeWord (única opción — Porcupine eliminado por completo tras el cierre del plan gratuito de Picovoice) | Precisión (falsos positivos/negativos) con voz real y el nombre del robot ("Koda"), consumo CPU |
+| 2 | VAD | WebRTC VAD vs Silero VAD vs TEN VAD (Cobra VAD eliminado por completo tras el cierre del plan gratuito de Picovoice) | Latencia de corte de habla, precisión con ruido ambiente real, consumo CPU |
 | 3 | TTS | Azure `es-PE-CamilaNeural` vs Kokoro | Naturalidad de voz en español, latencia real en el i3, viabilidad de correr 100% local |
 | 4 | STT offline (emergencia) | Vosk vs sherpa-onnx | Precisión con frases de emergencia en español, latencia, consumo |
 
