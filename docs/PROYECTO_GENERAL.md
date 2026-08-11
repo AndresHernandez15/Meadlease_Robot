@@ -75,7 +75,7 @@
 | Componente | Decisión |
 |---|---|
 | Motor | SQLite |
-| Esquema | 5 tablas (pacientes, medicamentos, horarios_medicacion, signos_vitales, registros_dispensacion) + tabla de notas persistentes |
+| Esquema | 5 tablas (usuarios, medicamentos, horarios_medicacion, signos_vitales, registros_dispensacion) + tabla de notas persistentes |
 | Método de creación | **Manual, paso a paso, guiado** — no generado automáticamente |
 | Acceso desde código | Vía funciones/herramientas del agente (ver `ROBOT_COGNICION.md`) |
 

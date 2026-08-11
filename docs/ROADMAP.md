@@ -5,7 +5,7 @@
 - [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
 - [ ] `venv --system-site-packages` + `uv` en el Dell
 - [ ] VSCode + Remote-SSH configurado entre el Asus y el Dell
-- [ ] Esquema SQLite creado a mano (`patient.db` + tabla de notas)
+- [ ] Esquema SQLite creado a mano (`usuarios.db` + tabla de notas)
 - [ ] `.gitignore` para `build/`, `install/`, `log/`, y `.env`
 - [ ] `.env` (credenciales reales) + `.env.example` (plantilla) — Groq, Azure, Telegram, Cerebras
 - [ ] Convención de idioma aplicada (código en inglés, contenido de usuario en español)

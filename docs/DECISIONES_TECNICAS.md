@@ -154,10 +154,25 @@
 - **Watchdog de seguridad:** si el ESP32 Movilidad no recibe `CMD_VELOCITY` en 500 ms, frena motores por su cuenta, independiente del botón físico de emergencia (ADR-007).
 - **Especificación completa (tablas de payload byte a byte):** ver `HARDWARE_FIRMWARE.md`, sección "Capa 2 — Comunicación PC ↔ Microcontroladores".
 
+### ADR-030 — Terminología: `usuarios` en vez de `pacientes`
+- **Estado:** Aceptada
+- **Contexto:** El esquema y las herramientas del agente usaban originalmente `pacientes`/`patient_id`, heredado de la idea inicial de un dispositivo médico.
+- **Decisión:** Renombrar a `usuarios`/`usuario_id` en toda la base de datos, las tools del agente y la documentación.
+- **Justificación:** Koda es un robot doméstico de acompañamiento y cuidado, no un dispositivo médico clínico — "usuarios" refleja correctamente el alcance del producto y evita expectativas de rigor clínico que el proyecto no busca cumplir.
+
+### ADR-031 — Diseño de `horarios_medicacion`: columna discriminadora `tipo_horario`
+- **Estado:** Aceptada
+- **Contexto:** El horario de un medicamento puede definirse de 3 formas distintas (diario, días específicos de la semana, o cada X horas desde una hora de inicio).
+- **Alternativa evaluada:** Una tabla separada por modo de horario (ej. `horarios_diarios`, `horarios_semanales`, `horarios_intervalo`).
+- **Decisión:** Una sola tabla `horarios_medicacion` con columna discriminadora `tipo_horario` (`'diario'` | `'dias_semana'` | `'intervalo'`) y columnas opcionales según el modo (`hora`, `dias_semana`, `intervalo_horas`, `hora_inicio`).
+- **Por qué se descartó la alternativa:** tres tablas separadas complican el cálculo de "próxima dosis" (requeriría consultar y combinar 3 tablas) y la relación N-a-N usuario↔medicamento se duplicaría en cada una, sin beneficio real para el volumen de datos de un prototipo.
+- **Nota:** el cálculo de "próxima dosis" (`get_next_dose`) se resuelve en código según el valor de `tipo_horario`, nunca en el LLM — mismo principio que evita alucinaciones temporales (ver `ROBOT_COGNICION.md`). Un usuario+medicamento tiene un solo patrón de horario vigente a la vez.
+- **Detalle del esquema completo:** ver `database/README.md`.
+
 ---
 
 ## Información faltante / pendiente de revisión
 
 - **Fechas de decisión** de cada ADR (el documento maestro no registra cuándo se tomó cada decisión, solo que fue "en la sesión de reformulación de agosto 2026") — si se quiere trazabilidad real tipo ADR, convendría fechar cada una.
 - **Autores/participantes por decisión:** no se distingue qué decisiones fueron discutidas con todo el equipo vs. solo Andrés+Claude.
-- Este archivo es una **compilación derivada** del documento maestro, no decisiones nuevas — al completar los vacíos identificados en los demás archivos (`ROBOT_COGNICION.md`, etc.), probablemente surgirán ADRs nuevos (ej. diseño del árbol py_trees) que deben añadirse aquí como ADR-029 en adelante.
+- Este archivo es una **compilación derivada** del documento maestro, no decisiones nuevas — al completar los vacíos identificados en los demás archivos (`ROBOT_COGNICION.md`, etc.), probablemente surgirán ADRs nuevos (ej. diseño del árbol py_trees) que deben añadirse aquí. **ADR-029 queda reservado** para esa decisión pendiente (árbol raíz de py_trees) cuando se cierre; ADR-030 y ADR-031 ya documentan decisiones de esquema de base de datos tomadas antes de cerrar esa.

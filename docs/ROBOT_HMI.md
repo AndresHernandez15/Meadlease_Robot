@@ -10,6 +10,7 @@
 - Coherencia emocional entre expresión visual y lo dicho/hecho.
 - Dashboard de datos de salud, medicación, historial (con gráfico de tendencias de signos vitales).
 - Interacción táctil (trackpad) + numpad MPR121 (ya montado en hardware — decisión pendiente es *para qué* se usa, no si se usa).
+- **Entrada de parámetros por voz (dictado):** dado que el robot no tiene pantalla táctil ni teclado físico, y navegar un teclado virtual con el trackpad es incómodo/poco práctico, cualquier campo de formulario del HMI (ej. agregar medicamento, configurar WiFi, nombre de un waypoint) puede llenarse por voz en vez de tipeando — el usuario activa un "modo dictado" sobre el campo enfocado y el texto reconocido lo completa.
 - Cierre automático de dashboard por privacidad — bonus, no bloqueante.
 - Efectos de sonido de retroalimentación (ej. beep al dejar de escuchar) — capa transversal de audio, no depende del framework de HMI elegido.
 - Indicador discreto de conectividad (modo online/offline).
@@ -31,7 +32,8 @@
 | Mapa interactivo | Renderizado de `/map` (occupancy grid de Nav2) como imagen en canvas, clic define waypoints/estación de carga | Reutiliza Waypoint Follower de Nav2 (ver `ROBOT_MOVILIDAD.md`) |
 | Modo de mapeo | Manual/asistido (no exploración autónoma) | Ver `ROBOT_MOVILIDAD.md` |
 | Control remoto | Página adicional del mismo servidor NiceGUI, acceso vía QR (misma red WiFi que la demo) | Sin infraestructura nueva — consecuencia de decisiones ya tomadas |
-| Configuración WiFi | Página en NiceGUI + teclado virtual del sistema (`onboard` o similar de Linux) | Evita reinventar teclado en pantalla |
+| Configuración WiFi | Página en NiceGUI + teclado virtual del sistema (`onboard` o similar de Linux), con opción de dictado por voz como alternativa | Evita reinventar teclado en pantalla; el dictado cubre el caso en que tipear con el trackpad es incómodo |
+| Entrada de parámetros por voz (dictado) | Reutiliza el mismo pipeline STT del agente (**Groq Whisper large-v3-turbo**, ver `ROBOT_VOZ.md`) en un "modo dictado" del HMI: transcribe y vuelca el texto en el campo de formulario enfocado, sin pasar por el agente/LLM | No duplica infraestructura de voz — mismo STT ya validado, aplicado a un caso de uso distinto (input de UI en vez de conversación) |
 | Botón de parada en HMI | **Descartado** | Sin pantalla táctil, impráctico — se mantiene solo el físico |
 
 ---
@@ -40,6 +42,7 @@
 
 - **Enumeración de los estados del HMI:** no hay un número fijo predefinido de estados — se definen y se amplían según necesidad durante el desarrollo (evitar camisa de fuerza desde el diseño). Falta definir el set inicial y su relación con los eventos del agente/BT, con la expectativa de que crezca orgánicamente.
 - **Diseño visual concreto** (paleta de colores por estado/urgencia, wireframes de las pantallas, tipografía) — no está especificado más allá de la descripción funcional.
-- **Uso concreto del numpad MPR121:** explícitamente marcado como pendiente ("decisión pendiente es *para qué* se usa, no si se usa").
+- **Uso concreto del numpad MPR121:** explícitamente marcado como pendiente ("decisión pendiente es *para qué* se usa, no si se usa") — sin definir aún si queda como respaldo del dictado por voz (ruido ambiente, privacidad de datos hablados) o si cubre otro caso de uso distinto.
+- **Detalle del "modo dictado" por voz:** falta definir activación (botón en el campo, comando de voz, MPR121), manejo de errores de transcripción (confirmación antes de guardar, edición manual posterior), y comportamiento si no hay conexión a internet (el STT es cloud, ver `ROBOT_VOZ.md`).
 - **Especificación de la pantalla "slideshow" de capacidades:** no se detalla contenido ni cuántas diapositivas/tarjetas incluye.
 - **Detalle del cierre automático de dashboard por privacidad:** temporizador, condición de activación — no especificado (marcado como bonus).

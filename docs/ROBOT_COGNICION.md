@@ -62,10 +62,11 @@ Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activame
 | `dispense_medication(medication_id)` | Verifica identidad internamente, dispensa, devuelve resultado |
 | `list_medications()` | Consulta medicamentos cargados |
 | `measure_vitals(kind)` | Dispara medición real (bpm/spo2/temperature/all) |
-| `get_last_vitals(patient_id)` | Consulta última medición guardada |
-| `get_next_dose(patient_id)` | Próxima dosis y tiempo restante (cálculo en código, no en LLM — evita alucinaciones temporales) |
-| `get_dose_history(patient_id, limit)` | Historial de dispensaciones |
-| `save_note(patient_id, text)` | Guarda nota relevante mencionada en conversación |
+| `get_last_vitals(usuario_id)` | Consulta última medición guardada |
+| `get_next_dose(usuario_id)` | Próxima dosis y tiempo restante (cálculo en código, no en LLM — evita alucinaciones temporales) |
+| `get_dose_history(usuario_id, limit)` | Historial de dispensaciones |
+| `save_note(usuario_id, text)` | Bitácora situacional/médica puntual ("durmió mal", "se golpeó la cabeza") → tabla `notas`, timestamped, historial completo |
+| `update_user_context(usuario_id, text)` | Perfil de personalidad/gustos del usuario (comida favorita, equipo de fútbol, etc.) → campo único `usuarios.contexto_relevante`. No es un historial cronológico: el agente recibe el `contexto_relevante` actual como parte del contexto de la tool call y decide si lo mantiene, lo amplía o lo reemplaza; la tool solo sobrescribe el campo con el texto final que el LLM produce, sin concatenar en código |
 | `notify_emergency_contact(reason)` | Notificación real vía Telegram al cuidador/usuario. **No detiene el robot** |
 
 ### Demostrativas (opcionales, no afectan funcionalidad núcleo)
@@ -80,7 +81,7 @@ Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activame
 
 **Comportamientos compuestos (combinan herramientas atómicas, no son herramientas nuevas):** `spin_and_greet` (turn_in_place + greet, útil para arranque de demo), mostrar compartimentos de medicamentos en pantalla al usar `list_medications`.
 
-**Nota de diseño — traducción de lenguaje natural a `medication_id`:** `dispense_medication` recibe un `medication_id`, no el nombre hablado — la traducción de lenguaje natural ("la de la presión") al ID correcto la resuelve el LLM con el contexto de `list_medications` en su prompt. **Validación obligatoria:** el `medication_id` (y en general cualquier valor fijo proveniente de la base de datos — IDs de medicamento, de paciente, de waypoint, etc.) que el LLM incluya en una llamada a herramienta debe validarse contra la base de datos antes de ejecutar la acción, en vez de confiar en que el LLM lo generó correctamente — mismo principio del validador ético estructural, aplicado aquí como validación estructural de datos.
+**Nota de diseño — traducción de lenguaje natural a `medication_id`:** `dispense_medication` recibe un `medication_id`, no el nombre hablado — la traducción de lenguaje natural ("la de la presión") al ID correcto la resuelve el LLM con el contexto de `list_medications` en su prompt. **Validación obligatoria:** el `medication_id` (y en general cualquier valor fijo proveniente de la base de datos — IDs de medicamento, de usuario, de waypoint, etc.) que el LLM incluya en una llamada a herramienta debe validarse contra la base de datos antes de ejecutar la acción, en vez de confiar en que el LLM lo generó correctamente — mismo principio del validador ético estructural, aplicado aquí como validación estructural de datos.
 
 ---
 
@@ -92,4 +93,4 @@ Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activame
 - **Especificación exacta del validador ético estructural**: se define su propósito (nunca diagnosticar/prescribir) pero no las reglas/patrones concretos que debe rechazar, ni el mensaje de fallback cuando bloquea una respuesta.
 - **Rangos de referencia de signos vitales** que disparan la reacción visual "fuera de rango" — no están enumerados (bpm, SpO2, temperatura).
 - **Ubicación final del Módulo 5 y Capa 9**: se incluyeron aquí por no tener archivo dedicado en la separación solicitada — confirmar si esta ubicación es correcta o si merecen archivo propio.
-- **Detalle de `save_note`**: no se especifica límite de longitud, ni cómo se recuperan las notas en conversación futura (más allá de la exclusión explícita de "recuperación proactiva entre sesiones").
+- **Detalle de `save_note` y `update_user_context`**: el propósito de cada una ya está diferenciado (bitácora situacional/médica vs. perfil de personalidad), pero falta especificar límite de longitud de texto en ambas, y el mecanismo exacto para inyectar el `contexto_relevante` actual en el prompt de `update_user_context` antes de que el LLM decida el texto de reemplazo.
