@@ -126,7 +126,7 @@
 
 ### ADR-024 — Editor/IDE: VSCode sobre PyCharm
 - **Estado:** Aceptada
-- **Justificación:** proyecto multi-lenguaje (Python + C/C++ firmware + YAML + Markdown), terreno donde VSCode tiene ventaja documentada sobre PyCharm en comparativas 2026. Remote-SSH permite editar/depurar directo en el Dell desde el Asus. Extensión PlatformIO para firmware ESP32 en el mismo editor.
+- **Justificación:** proyecto multi-lenguaje (Python + C/C++ firmware + YAML + Markdown), terreno donde VSCode tiene ventaja documentada sobre PyCharm en comparativas 2026. Extensión PlatformIO para firmware ESP32 en el mismo editor.
 
 ### ADR-025 — Estructura del repositorio: un solo repo (monorepo)
 - **Estado:** Aceptada
@@ -168,6 +168,12 @@
 - **Por qué se descartó la alternativa:** tres tablas separadas complican el cálculo de "próxima dosis" (requeriría consultar y combinar 3 tablas) y la relación N-a-N usuario↔medicamento se duplicaría en cada una, sin beneficio real para el volumen de datos de un prototipo.
 - **Nota:** el cálculo de "próxima dosis" (`get_next_dose`) se resuelve en código según el valor de `tipo_horario`, nunca en el LLM — mismo principio que evita alucinaciones temporales (ver `ROBOT_COGNICION.md`). Un usuario+medicamento tiene un solo patrón de horario vigente a la vez.
 - **Detalle del esquema completo:** ver `database/README.md`.
+
+### ADR-032 — Flujo de desarrollo Asus↔Dell: `git pull`, sin Remote-SSH
+- **Estado:** Aceptada (revisión de decisión previa)
+- **Contexto:** El roadmap original de Fase 0 contemplaba configurar VSCode Remote-SSH entre el Asus y el Dell para editar/depurar directo sobre el Dell desde el Asus.
+- **Decisión:** Se descarta Remote-SSH. Cada máquina tiene su propio `venv --system-site-packages`. El desarrollo y la configuración ocurren en el Asus; el Dell se usa vía `git pull` únicamente para pruebas que dependen de su hardware real (micrófono, latencia) y, más adelante, para integración final y la demo.
+- **Por qué se descartó:** Remote-SSH añade una capa de configuración y dependencia de red sin necesidad real — ambas máquinas corren el mismo SO/misma versión de ROS2, así que un `venv` propio en cada una más `git pull` ya da paridad de entorno sin la fragilidad de mantener una sesión SSH persistente entre ellas.
 
 ---
 

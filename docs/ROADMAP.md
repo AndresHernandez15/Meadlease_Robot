@@ -3,8 +3,7 @@
 ## FASE 0 — Cimientos
 
 - [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
-- [ ] `venv --system-site-packages` + `uv` en el Dell
-- [ ] VSCode + Remote-SSH configurado entre el Asus y el Dell
+- [ ] `venv --system-site-packages` + `uv` en el Asus (desarrollo) y en el Dell (pruebas de hardware real)
 - [ ] Esquema SQLite creado a mano (`usuarios.db` + tabla de notas)
 - [ ] `.gitignore` para `build/`, `install/`, `log/`, y `.env`
 - [ ] `.env` (credenciales reales) + `.env.example` (plantilla) — Groq, Azure, Telegram, Cerebras
