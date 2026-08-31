@@ -93,7 +93,7 @@ meadlease/
 
 ## Estado actual
 
-El proyecto está en la fase posterior a la reformulación arquitectónica: las decisiones de diseño están cerradas y documentadas, y la implementación avanza en paralelo al ensamblaje físico (impresión 3D casi terminada, dispensador funcional, PCB de movilidad en ajuste). El detalle fase por fase vive en [`docs/ROADMAP.md`](docs/ROADMAP.md).
+El proyecto está en la fase posterior a la reformulación arquitectónica: las decisiones de diseño están cerradas y documentadas, y la implementación avanza en paralelo al ensamblaje físico (impresión 3D casi terminada, post-procesado con base pintada, dispensador funcional, PCB de movilidad resuelta). El detalle fase por fase vive en [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Documentación
 
