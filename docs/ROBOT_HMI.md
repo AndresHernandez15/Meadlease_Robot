@@ -34,6 +34,7 @@
 | Control remoto | Página adicional del mismo servidor NiceGUI, acceso vía QR (misma red WiFi que la demo) | Sin infraestructura nueva — consecuencia de decisiones ya tomadas |
 | Configuración WiFi | Página en NiceGUI + teclado virtual del sistema (`onboard` o similar de Linux), con opción de dictado por voz como alternativa | Evita reinventar teclado en pantalla; el dictado cubre el caso en que tipear con el trackpad es incómodo |
 | Entrada de parámetros por voz (dictado) | Reutiliza el mismo pipeline STT del agente (**Groq Whisper large-v3-turbo**, ver `ROBOT_VOZ.md`) en un "modo dictado" del HMI: transcribe y vuelca el texto en el campo de formulario enfocado, sin pasar por el agente/LLM | No duplica infraestructura de voz — mismo STT ya validado, aplicado a un caso de uso distinto (input de UI en vez de conversación) |
+| Pantalla de horario de medicación | Selector de días tipo L-M-M-J-V-S-D con casilla "todos los días" para alternar entre modo `diario`/`dias_semana`, y un modo alternativo para "cada X horas desde una hora de inicio" (`intervalo`) | Da flexibilidad de ingreso sin que el usuario final necesite entender los 3 modos de `horarios_medicacion` (ver `database/README.md`, §3.3) |
 | Botón de parada en HMI | **Descartado** | Sin pantalla táctil, impráctico — se mantiene solo el físico |
 
 ---

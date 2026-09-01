@@ -4,7 +4,7 @@
 
 - [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
 - [ ] `venv --system-site-packages` + `uv` en el Asus (desarrollo) y en el Dell (pruebas de hardware real)
-- [ ] Esquema SQLite creado a mano (`usuarios.db` + tabla de notas)
+- [x] Esquema SQLite creado a mano (`meadlease.db` — 6 tablas incl. `notas`) + `schema.sql` exportado
 - [ ] `.gitignore` para `build/`, `install/`, `log/`, y `.env`
 - [ ] `.env` (credenciales reales) + `.env.example` (plantilla) — Groq, Azure, Telegram, Cerebras
 - [ ] Convención de idioma aplicada (código en inglés, contenido de usuario en español)

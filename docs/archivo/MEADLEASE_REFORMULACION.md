@@ -1,4 +1,7 @@
 # MEADLEASE — DOCUMENTO MAESTRO DE REFORMULACIÓN
+
+> **Archivado:** el contenido de este documento ya fue dividido en los docs modulares (`ROBOT_*.md`, `DECISIONES_TECNICAS.md`, `PROYECTO_GENERAL.md`, `ROADMAP.md`). Se conserva solo como referencia histórica de la sesión de reformulación; no es fuente activa de decisiones.
+
 ## Base de la nueva documentación del proyecto (v1 — pendiente de dividir en archivos específicos)
 
 > **Fecha de esta reformulación:** Agosto 2026

@@ -4,11 +4,11 @@
 
 | Frente | Estado |
 |---|---|
-| Impresión 3D | ~90% — cuerpo completo impreso incluyendo cabeza y cuello. Falta: compuertas de mantenimiento y brazo de signos vitales |
-| Post-procesado | Iniciado (todo el equipo), ~1 semana estimada una vez impresas las piezas faltantes |
+| Impresión 3D | ~98% — cuerpo completo impreso incluyendo cabeza, cuello, brazo de signos vitales y compuertas de mantenimiento. Falta solo detalle decorativo menor |
+| Post-procesado | Robot completo masillado y pintado con base, a la espera del acabado final con los colores definitivos |
 | Cableado | En curso (Sergio), en paralelo al post-procesado — objetivo: robot completamente cableado antes de pegar/masillar la carcasa de forma definitiva, dejando solo las compuertas de mantenimiento como punto de acceso |
 | Dispensador (pastillero) | **100% funcional y probado**, incluida la ventosa de succión en TPU (ya fabricada). Ajuste menor en curso (Linda): cambio de tornillo sin fin impreso en 3D por uno metálico, para mejorar tolerancias y suavidad |
-| PCB de movilidad | En curso (Sergio) — resolviendo falsos contactos en sensores ultrasónicos JSN-SR04T |
+| PCB de movilidad | Falsos contactos en sensores ultrasónicos JSN-SR04T resueltos |
 | PCB Médica / firmware ESP32 Médica | Pendiente, en coordinación con especificación de protocolo (Fase 2 del roadmap) |
 | Dell Inspiron (placa) | **Desmontable** — actualmente fuera de la carcasa, en el escritorio de Andrés, con acceso total a cámara/micrófono/puertos. Ubuntu 24.04 + ROS2 Jazzy ya instalados limpios. La pantalla del Dell también está desmontada y en el mismo escritorio — todas las pruebas de desarrollo (incluido el HMI) se realizan con esa misma pantalla, de forma consistente hasta el ensamblaje final |
 | STM32F411 (micro-ROS) | Validado con PC vía USB-CDC — pendiente conexión UART a ambos ESP32 |
@@ -42,7 +42,7 @@
 
 | Sensor | Cantidad | Posición | Alimentación | Rango | Estado |
 |---|---|---|---|---|---|
-| JSN-SR04T | 5 | 2 frontales (bordes, 0°) · 2 laterales (esquinas delanteras, 90°) · 1 trasero (centrado, 180°) | 5V | 0.2–4.5 m | Montaje y ángulos definidos — falsos contactos en resolución (PCB de movilidad, ver "Estado de construcción") |
+| JSN-SR04T | 5 | 2 frontales (bordes, 0°) · 2 laterales (esquinas delanteras, 90°) · 1 trasero (centrado, 180°) | 5V | 0.2–4.5 m | ✅ Montaje y ángulos definidos — falsos contactos resueltos (PCB de movilidad) |
 
 Montaje a 10 cm del suelo, en carcasas impresas integradas a la carcasa base con ángulos fijos y protección contra golpes incluida en el diseño.
 
