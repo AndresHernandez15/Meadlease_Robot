@@ -217,14 +217,87 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# ROS2
+# =========================================================================
+#  MEADLEASE (Koda) — reglas específicas del proyecto
+# =========================================================================
+
+# --- ROS2 / colcon ---
 ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
 
-# Entorno
-.env
-venv/
+# --- PlatformIO (firmware ESP32) ---
+firmware/*/.pio/
 
-# PlatformIO
-firmware/*/. pio/
+# --- Credenciales y secretos -------------------------------------------------
+# `.env` con valores reales NUNCA se sube; la plantilla `.env.example` SÍ.
+.env
+.env.*
+!.env.example
+# Llaves, certificados y credenciales de servicios (Azure, Google, Telegram...)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+credentials.json
+client_secret*.json
+service-account*.json
+*-credentials.json
+*.credentials
+secrets.yaml
+secrets.yml
+.secrets/
+
+# --- Datos de la base de datos (contienen datos personales/biomédicos) ------
+# El diseño versionado vive en database/schema.sql (y database/seed.sql de prueba).
+# El archivo .db se recrea localmente y nunca se sube.
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.db3
+
+# --- Datos personales / biométricos ---------------------------------------
+# Embeddings faciales, fotos de registro, perfiles de usuario en disco.
+# (En cualquier nivel del árbol. Los .gitkeep siguen permitidos.)
+**/embeddings/
+**/faces/
+**/registro_facial/
+/data/
+
+# --- Capturas de audio y voz (pueden contener PII de voz) -----------------
+**/recordings/
+**/captures/
+**/audio_out/
+*.rosbag
+**/rosbag2_*/
+
+# --- Mapas SLAM --------------------------------------------------------
+# Por defecto se ignoran: un mapa RTAB-Map / Nav2 revela el layout de la
+# casa de un usuario real. EXCEPCIÓN: el mapa del espacio de la demo
+# (auditorio / laboratorio de pruebas) SÍ se versiona como respaldo, en
+#   ros2_ws/src/robot_bringup/maps/
+*.pgm
+rtabmap.db
+!ros2_ws/src/robot_bringup/maps/
+!ros2_ws/src/robot_bringup/maps/**
+
+# --- Modelos / pesos grandes -------------------------------------------
+# NO son sensibles (todos son pesos públicos: SCRFD, ArcFace, openWakeWord,
+# Vosk, Kokoro...). Se dejan fuera de git por el límite de 100 MB/archivo de
+# GitHub y para no inflar el historial. Cada máquina los baja con
+#   scripts/fetch_models.py   (URLs fijas + verificación SHA256)
+# El layout esperado se documenta en models/README.md (ese sí se versiona).
+*.onnx
+*.onnx_data
+*.tflite
+*.pt
+*.pth
+*.gguf
+/models/*
+!/models/README.md
+!/models/.gitkeep
+**/vosk-model*/
