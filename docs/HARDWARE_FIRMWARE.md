@@ -190,11 +190,3 @@ firmware/
 ```
 
 ---
-
-## Información faltante / pendiente de revisión
-
-- **Manejo de errores/reintentos de la trama UART:** la especificación de campos/tamaños/orden de bytes ya está cerrada (ver sección "Especificación de la trama UART" arriba y ADR-028). Falta definir política de reintentos ante CRC inválido o timeout (¿el emisor reenvía automáticamente? ¿cuántos intentos antes de reportar fallo de link?).
-- **Ubicación final de la tira LED ambiental:** pendiente de definir en CAD.
-- **Estado y especificación de la PCB Médica:** sigue listada como "pendiente" sin más detalle.
-- **Planos eléctricos / diagrama de conexión completo** entre STM32, ambos ESP32 S3, la ESP32-CAM, sensores y actuadores — esta documentación de hardware da los circuitos puntuales (bomba, divisor de voltaje, INA3221) pero no un diagrama unificado.
-- **Nota de discrepancia de versión de SO:** el documento de hardware de la iteración pasada menciona Ubuntu 22.04 en el Dell; la decisión vigente del proyecto (`PROYECTO_GENERAL.md`) es Ubuntu 24.04 + ROS2 Jazzy, ya reinstalado limpio — se documenta aquí solo el inventario físico, la versión de SO vigente no cambia.
