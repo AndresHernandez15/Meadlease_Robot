@@ -49,7 +49,7 @@ STM32 (puente UART) ── ESP32 Movilidad
 | Middleware | ROS 2 Jazzy Jalisco sobre Ubuntu 24.04 LTS |
 | Percepción | MediaPipe Pose (presencia), SCRFD + ArcFace vía ONNX Runtime (reconocimiento facial) |
 | SLAM / navegación | RTAB-Map, Nav2 |
-| Agente / cognición | Pydantic AI, Groq (Llama 3.3 70B Versatile) con fallback a Cerebras y OpenRouter |
+| Agente / cognición | Pydantic AI, Groq (Llama 3.3 70B Versatile), fallback de 3 modelos + key principal a 3 modelos + key secundaria |
 | Árbol de comportamiento | py_trees / py_trees_ros |
 | Voz | openWakeWord (wake word), TEN VAD, Groq Whisper large-v3-turbo (STT), Azure `es-PE-CamilaNeural` (TTS), Vosk acotado a comandos de emergencia offline |
 | Interfaz (HMI) | NiceGUI sobre Chromium en modo kiosco |

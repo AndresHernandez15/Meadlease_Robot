@@ -70,8 +70,7 @@
 - **Estado:** Aceptada, con mitigación de riesgo
 - **Riesgo identificado:** Groq fue adquirida por Nvidia a inicios de 2026, con reducción de personal técnico y catálogo curado (~12 modelos), patrón de deprecación documentado.
 - **Mitigación:** Pydantic AI es agnóstico de proveedor — cambiar proveedor es cambio de configuración, no reescritura de código.
-- **Plan B:** Cerebras (fallback directo, catálogo más pequeño y volátil, no usado como primario).
-- **Plan C:** OpenRouter (agregador multi-proveedor, red de seguridad de última instancia, añade latencia de enrutamiento).
+- **Fallback:** cadena de 3 modelos con la key principal de Groq → 3 modelos con la key secundaria de Groq, suficiente sin depender de un segundo proveedor.
 - **Modelo inicial:** Llama 3.3 70B Versatile.
 
 ### ADR-014 — Framework de Behavior Tree: py_trees + py_trees_ros
@@ -112,7 +111,7 @@
 ### ADR-021 — Voz-a-voz nativa: descartada
 - **Estado:** Rechazada
 - **Alternativas evaluadas:** OpenAI Realtime API, Gemini Live, Amazon Nova Sonic.
-- **Por qué se descartaron:** sin transcripción limpia (debilita el validador ético estructural), atan a un solo proveedor (rompe la resiliencia Groq→Cerebras→OpenRouter), modelo económico distinto al diseñado, y son cajas negras que contradicen el principio de transparencia/control del proyecto. Se mantiene arquitectura en cascada STT→LLM→TTS.
+- **Por qué se descartaron:** sin transcripción limpia (debilita el validador ético estructural), atan a un solo proveedor (rompe la resiliencia del fallback de Groq), modelo económico distinto al diseñado, y son cajas negras que contradicen el principio de transparencia/control del proyecto. Se mantiene arquitectura en cascada STT→LLM→TTS.
 
 ### ADR-022 — HMI: NiceGUI sobre Chromium Kiosk
 - **Estado:** Aceptada

@@ -85,7 +85,7 @@
 - **Código en inglés** (nombres, comentarios — estándar del ecosistema ROS2/Python).
 - **Contenido orientado al usuario en español** (prompts del agente, textos del HMI, mensajes de Telegram).
 - `.gitignore` para `build/`, `install/`, `log/`, y `.env`.
-- `.env` (credenciales reales, nunca en git) + `.env.example` (plantilla sin valores) — Groq, Azure, Telegram, Cerebras.
+- `.env` (credenciales reales, nunca en git) + `.env.example` (plantilla sin valores) — Groq, Azure, Telegram.
 
 ### Estructura del repositorio (referencia — detalle de tareas en `ROADMAP.md`)
 
