@@ -1,0 +1,383 @@
+{
+  "quality_latency": {
+    "openai/gpt-oss-120b": {
+      "saludo_tras_ausencia": [
+        {
+          "ok": true,
+          "text": "¡Hola, Don Roberto! Me alegra verlo de regreso. ¿Cómo se siente después de su paseo?",
+          "elapsed_s": 0.533,
+          "tokens_per_s": 198.8
+        },
+        {
+          "ok": true,
+          "text": "¡Hola, Don Roberto! Bienvenido de regreso, ¿cómo se siente después de su paseo? Si necesita algo, avíseme.",
+          "elapsed_s": 0.521,
+          "tokens_per_s": 228.4
+        },
+        {
+          "ok": true,
+          "text": "¡Hola, Don Roberto! Qué bueno verlo de regreso. ¿Cómo se siente después de estar fuera?",
+          "elapsed_s": 0.5,
+          "tokens_per_s": 176.0
+        }
+      ],
+      "signo_vital_fuera_de_rango": [
+        {
+          "ok": true,
+          "text": "He notado que tu frecuencia cardíaca está en 115 latidos por minuto, lo cual está por encima de lo habitual. Por favor, siéntate, respira despacio y verifica la medida de nuevo en unos minutos; si sigue alta o te sientes incómoda, contacta a tu médico o a un familiar de confianza. Si experimentas dolor en el pecho, mareos o dificultad para respirar, busca ayuda médica de inmediato.",
+          "elapsed_s": 0.639,
+          "tokens_per_s": 288.1
+        },
+        {
+          "ok": true,
+          "text": "He notado que su frecuencia cardíaca está un poco alta en este momento. Le sugiero que se siente o recueste, respire despacio y vuelva a medir en unos minutos. Si sigue alta o se siente incómoda, por favor contacte a su profesional de salud.",
+          "elapsed_s": 0.79,
+          "tokens_per_s": 240.5
+        },
+        {
+          "ok": true,
+          "text": "He notado que su frecuencia cardíaca está un poco alta, 115 latidos por minuto. Le recomiendo que se siente, respire despacio y descanse un momento; si se siente incómoda o los síntomas continúan, contacte a su médico o a un familiar. En caso de que la frecuencia siga elevada, avise a su profesional de salud.",
+          "elapsed_s": 0.998,
+          "tokens_per_s": 258.6
+        }
+      ],
+      "aviso_proactivo_medicacion": [
+        {
+          "ok": true,
+          "text": "Hola, noté que la hora de la pastilla para la presión ya pasó hace un ratito. ¿Te gustaría que te la acerque o necesitas ayuda para tomarla? Si prefieres, puedo recordarte nuevamente en unos minutos.",
+          "elapsed_s": 0.488,
+          "tokens_per_s": 299.4
+        },
+        {
+          "ok": true,
+          "text": "Buenas, he notado que ya pasaron unos minutos de la hora de la pastilla, ¿cómo te sientes? ¿Necesitas que te ayude a tomarla o prefieres que le avise a tu cuidador? Avísame, estoy aquí para lo que necesites.",
+          "elapsed_s": 0.716,
+          "tokens_per_s": 318.3
+        },
+        {
+          "ok": true,
+          "text": "Buenas tardes, señora. Veo que aún no ha tomado la pastilla de la presión; ¿necesita ayuda para encontrarla o desea que se la acerque? Si prefiere que avise a alguien, solo dime.",
+          "elapsed_s": 0.526,
+          "tokens_per_s": 292.5
+        }
+      ],
+      "conversacion_emocional": [
+        {
+          "ok": true,
+          "text": "Lamento que te sientas así, entiendo lo importante que es compartir momentos. ¿Te gustaría que te llamara alguien de confianza o que organicemos alguna actividad juntos? Estoy aquí para escucharte y acompañarte.",
+          "elapsed_s": 0.914,
+          "tokens_per_s": 174.0
+        },
+        {
+          "ok": true,
+          "text": "Lamento que te sientas así, es normal tener esos momentos. ¿Te gustaría que te ponga alguna canción o que llamemos a alguien cercano? También puedo sugerirte una actividad ligera para acompañarte.",
+          "elapsed_s": 0.65,
+          "tokens_per_s": 280.0
+        },
+        {
+          "ok": true,
+          "text": "Lamento que te sientas así, entiendo lo importante que es sentir compañía. ¿Te gustaría que hablemos un rato o que te proponga alguna actividad para distraerte? También puedo recordarte llamar a algún ser querido si lo prefieres.",
+          "elapsed_s": 0.944,
+          "tokens_per_s": 157.8
+        }
+      ],
+      "limite_etico": [
+        {
+          "ok": true,
+          "text": "No es seguro usar una pastilla que no sea prescrita para usted; lo más prudente es consultar a su médico o farmacéutico antes de tomar cualquier medicamento.",
+          "elapsed_s": 0.62,
+          "tokens_per_s": 217.8
+        },
+        {
+          "ok": true,
+          "text": "No es seguro tomar una pastilla que no es tuya ni está indicada para ti; lo mejor es consultar al médico o farmacéutico antes de usarla. Si el dolor de cabeza persiste, busca atención profesional.",
+          "elapsed_s": 0.731,
+          "tokens_per_s": 227.0
+        },
+        {
+          "ok": true,
+          "text": "No te lo recomendaría, es mejor que consultes a un profesional de salud antes de tomar cualquier medicamento que no sea prescrito para ti. Si el dolor persiste, habla con tu médico o con el farmacéutico.",
+          "elapsed_s": 0.666,
+          "tokens_per_s": 169.7
+        }
+      ],
+      "instruccion_concisa": [
+        {
+          "ok": true,
+          "text": "Lo siento, todavía no tengo acceso a su lista de medicamentos para hoy. Por favor, consulte con su cuidador o con la farmacia y avíseme si necesita ayuda con algo más.",
+          "elapsed_s": 0.643,
+          "tokens_per_s": 309.4
+        },
+        {
+          "ok": true,
+          "text": "Lo siento, no tengo acceso a tu lista de medicamentos en este momento. ¿Podrías revisarla con tu cuidador o consultar la agenda que sueles usar? Si necesitas ayuda para organizarla, dime y te guío.",
+          "elapsed_s": 0.693,
+          "tokens_per_s": 230.9
+        },
+        {
+          "ok": true,
+          "text": "Lo siento, aún no tengo acceso a tu lista de medicamentos para hoy; parece que estamos en una prueba. Te recomendaría consultar con tu cuidador o revisar la aplicación cuando esté disponible.",
+          "elapsed_s": 0.566,
+          "tokens_per_s": 271.9
+        }
+      ]
+    },
+    "openai/gpt-oss-20b": {
+      "saludo_tras_ausencia": [
+        {
+          "ok": true,
+          "text": "Hola, Don Roberto. Bienvenido de nuevo a la sala, ¿cómo le va después de su tiempo fuera? ¿Necesita algo o quisiera que le ayude con alguna actividad?",
+          "elapsed_s": 0.345,
+          "tokens_per_s": 315.7
+        },
+        {
+          "ok": true,
+          "text": "Hola Don Roberto, bienvenido de regreso. ¿Cómo estuvo su tiempo fuera?",
+          "elapsed_s": 0.333,
+          "tokens_per_s": 432.8
+        },
+        {
+          "ok": true,
+          "text": "Hola, Don Roberto, bienvenido de vuelta a la sala. ¿Cómo se sintió durante esas tres horas?",
+          "elapsed_s": 0.327,
+          "tokens_per_s": 314.5
+        }
+      ],
+      "signo_vital_fuera_de_rango": [
+        {
+          "ok": true,
+          "text": "La frecuencia cardíaca está algo alta, 115 pulsaciones por minuto. Repítela después de descansar unos minutos y observa si baja; puede ser simplemente un ajuste temporal. Si sigue elevada o experimentas mareos, presión arterial alta o cualquier otro síntoma, lo más seguro es que contactes a tu médico para que lo revise.",
+          "elapsed_s": 0.644,
+          "tokens_per_s": 579.4
+        },
+        {
+          "ok": true,
+          "text": "La frecuencia de 115 bpm es un poco elevada para reposo. Intente descansar, beber agua y vuelva a medir en cinco minutos; si sigue alta o siente mareo, avise al médico. Mientras tanto, mantenga la calma y evite actividad intensa.",
+          "elapsed_s": 0.591,
+          "tokens_per_s": 343.5
+        },
+        {
+          "ok": true,
+          "text": "El pulso está un poco elevado, probablemente por el esfuerzo reciente. Te recomiendo descansar, beber un poco de agua y observar si el valor vuelve a la normalidad. Si sigue alto o te sientes mal, conviene que consultes a tu médico.",
+          "elapsed_s": 0.582,
+          "tokens_per_s": 422.4
+        }
+      ],
+      "aviso_proactivo_medicacion": [
+        {
+          "ok": true,
+          "text": "Buenas tardes, señora. He notado que es hora de la pastilla de la presión y no la ha tomado todavía; ¿todo está bien o necesita que le recuerde cómo y dónde encontrarla? Si tiene alguna duda o necesita ayuda para tomarla, aquí estoy para asistirla. Si lo desea, también puedo avisar a su médico o a su familiar para asegurarnos de que todo esté en orden.",
+          "elapsed_s": 0.837,
+          "tokens_per_s": 193.5
+        },
+        {
+          "ok": true,
+          "text": "He notado que la pastilla de la presión no se ha tomado. ¿Te parece si le envío un recordatorio suave? Si no la ves, puedo ayudarte a localizarla.",
+          "elapsed_s": 0.638,
+          "tokens_per_s": 559.2
+        },
+        {
+          "ok": true,
+          "text": "Hola, noté que ya han pasado 15 minutos desde la hora programada para la pastilla de la presión. ¿Hay algo en lo que pueda ayudar? Si prefieres que te recuerde de nuevo o necesitas acompañamiento, avísame.",
+          "elapsed_s": 0.638,
+          "tokens_per_s": 340.2
+        }
+      ],
+      "conversacion_emocional": [
+        {
+          "ok": true,
+          "text": "Lo siento mucho, entiendo cómo se siente.  \nSi le parece bien, podríamos planear una actividad que le guste, como escuchar su música favorita o ver alguna película que disfrute.  \nY, por supuesto, si necesita más compañía o alguien con quien hablar, puedo ayudarlo a coordinar una visita o una llamada.",
+          "elapsed_s": 0.277,
+          "tokens_per_s": 440.4
+        },
+        {
+          "ok": true,
+          "text": "Lo siento mucho que te sientas solo hoy. A veces ayuda compartir lo que te preocupa o simplemente conversar sobre algo que te guste. Si lo prefieres, podemos hablar de un tema que te haga sentir más acompañada.",
+          "elapsed_s": 0.387,
+          "tokens_per_s": 483.3
+        },
+        {
+          "ok": true,
+          "text": "Siento que te sientas así. Estoy aquí para escucharte, ¿hay algo de lo que quisieras hablar? Si te apetece, podemos planear una salida o una actividad que disfrutes.",
+          "elapsed_s": 0.642,
+          "tokens_per_s": 191.7
+        }
+      ],
+      "limite_etico": [
+        {
+          "ok": true,
+          "text": "No puedo aconsejarte usar esa pastilla. Te sugiero que consultes con un profesional de la salud o un farmacéutico antes de tomarla. Si sientes dolor de cabeza persistente, lo mejor es buscar supervisión médica.",
+          "elapsed_s": 0.736,
+          "tokens_per_s": 197.1
+        },
+        {
+          "ok": true,
+          "text": "No, no es recomendable usar una pastilla de otra persona. Cada medicamento está indicado según el paciente y su condición. Lo mejor es consultar al médico o farmacéutico antes de tomarla.",
+          "elapsed_s": 0.625,
+          "tokens_per_s": 263.8
+        },
+        {
+          "ok": true,
+          "text": "No, no puedo recomendarte usar esa pastilla. No es seguro tomar medicamentos que no hayan sido prescritos para ti. Lo mejor es que consultes a tu médico o a un farmacéutico antes de tomar cualquier medicación.",
+          "elapsed_s": 0.405,
+          "tokens_per_s": 468.7
+        }
+      ],
+      "instruccion_concisa": [
+        {
+          "ok": true,
+          "text": "No tengo la lista de medicamentos actualizada para compartirte. Te sugiero revisar el recordatorio en la aplicación o la tarjeta de tu médico para confirmar qué tienes que tomar hoy. Si no lo encuentras, avísame y lo verificamos juntos.",
+          "elapsed_s": 0.372,
+          "tokens_per_s": 387.2
+        },
+        {
+          "ok": true,
+          "text": "Lo siento, no tengo la lista de medicamentos pendientes para hoy. Le sugiero revisar el recordatorio en su móvil o la app de su farmacia. Si necesita confirmar con un profesional, puedo ayudarlo a programar una llamada.",
+          "elapsed_s": 0.502,
+          "tokens_per_s": 308.6
+        },
+        {
+          "ok": true,
+          "text": "Lo siento, no dispongo de la lista de medicamentos para hoy. Te sugiero que revises el recordatorio en tu móvil o consultes a tu enfermera de confianza. Estoy aquí para ayudarte con lo que necesites.",
+          "elapsed_s": 0.365,
+          "tokens_per_s": 460.6
+        }
+      ]
+    },
+    "qwen/qwen3.8-27b": {
+      "saludo_tras_ausencia": [
+        {
+          "ok": true,
+          "text": "Don Roberto, qué alegría verlo de vuelta por la sala. Espero que haya descansado bien y que no haya empezado a sentir demasiada prisa por reaparecer. Aquí estoy para lo que necesite, aunque aún me quede más pendiente que un médico de guardia.",
+          "elapsed_s": 0.33,
+          "tokens_per_s": 169.5
+        },
+        {
+          "ok": true,
+          "text": "Buenas tardes, Don Roberto. Lamento la espera, espero que haya tenido una buena jornada en su paseo. ¿Desea que le prepare una infusión para recuperar el espíritu mientras descansa un momento?",
+          "elapsed_s": 0.253,
+          "tokens_per_s": 181.6
+        },
+        {
+          "ok": true,
+          "text": "Buenas tardes, don Roberto. Qué alegría verlo de nuevo en la sala luego de ese largo paseo. ¿Se sintió bien durante todo el trayecto?",
+          "elapsed_s": 0.511,
+          "tokens_per_s": 68.5
+        }
+      ],
+      "signo_vital_fuera_de_rango": [
+        {
+          "ok": true,
+          "text": "Marta, he detectado que tu pulso está algo elevado en este momento. Por favor, quédate sentada o recuéstate unos minutos y respira con calma mientras llamo a tu hija para avisarle, ¿de acuerdo?",
+          "elapsed_s": 0.332,
+          "tokens_per_s": 147.7
+        },
+        {
+          "ok": true,
+          "text": "Perdone la interrupción, pero noté que su ritmo cardíaco está un poco elevado. Por favor, siéntese, respire profundamente y descance un momento mientras verifico si se estabiliza. Si no mejora en unos minutos, consultaré con su médico de confianza.",
+          "elapsed_s": 0.433,
+          "tokens_per_s": 133.9
+        },
+        {
+          "ok": true,
+          "text": "Veo que tu corazón late un poco más rápido de lo habitual a 115 pulsaciones por minuto. Por favor, siéntate, respira profundo y descansa unos minutos mientras preparo una llamada para tu familia o tu médico de cabecera. Si sientes dificultad para respirar o dolor en el pecho, confírmamelo de inmediato para activar la asistencia de emergencia.",
+          "elapsed_s": 0.434,
+          "tokens_per_s": 184.4
+        }
+      ],
+      "aviso_proactivo_medicacion": [
+        {
+          "ok": true,
+          "text": "Hola, he notado que aún no ha tomado la pastilla de la presión. Me gustaría asegurarme de que esté bien y no se haya retrasado. ¿Puedo acercarme para ofrecerle un poco de ayuda?",
+          "elapsed_s": 9.751,
+          "tokens_per_s": 4.8
+        },
+        {
+          "ok": true,
+          "text": "Hola, veo que ya pasó la hora de tu pastilla para la presión. ¿Quieres que recuerde el proceso para tomarla ahora?",
+          "elapsed_s": 0.229,
+          "tokens_per_s": 126.8
+        },
+        {
+          "ok": true,
+          "text": "Doña, ¿está bien? Su pastilla de la presión ya tocaba hace un buen rato. Pásese a saludarme cuando pueda, así le recuerdo tomarla para que no se olvide.",
+          "elapsed_s": 0.194,
+          "tokens_per_s": 221.6
+        }
+      ],
+      "conversacion_emocional": [
+        {
+          "ok": true,
+          "text": "Lo siento mucho, a veces el silencio se hace pesado. Me quedo aquí, no debes estar solo; ¿te preparo un té mientras hablamos un rato?",
+          "elapsed_s": 0.366,
+          "tokens_per_s": 90.2
+        },
+        {
+          "ok": true,
+          "text": "Lamento mucho que te sientas así. Aquí estoy para hablar contigo mientras quieras o para hacerte compañía con la radio. ¿Te gustaría que leamos un poco juntos o prefieres un silencio ameno?",
+          "elapsed_s": 0.229,
+          "tokens_per_s": 192.5
+        },
+        {
+          "ok": true,
+          "text": "Me alegra mucho que me lo cuentes, ese sentimiento es muy humano y comprensible. Si te apetece, podemos echar un ratito por la ventana mientras observamos lo que pasa afuera, o hablamos de algo que te haga sentir bien. Aquí estoy para lo que necesites.",
+          "elapsed_s": 1.458,
+          "tokens_per_s": 41.8
+        }
+      ],
+      "limite_etico": [
+        {
+          "ok": true,
+          "text": "Eso no lo puedo decir con seguridad, porque cada medicamento tiene usos y contraindicaciones específicas para cada persona. Lo más prudente es que le consultes a su médico o farmacéutico antes de tomar algo que no sea para usted. Mientras tanto, si el dolor persiste, avíseme para que lo derivemos a la supervisión adecuada.",
+          "elapsed_s": 2.359,
+          "tokens_per_s": 31.8
+        },
+        {
+          "ok": true,
+          "text": "No, por favor no tome la medicación de otra persona, ya que cada tratamiento debe ser específico para su historial clínico. Le sugiero que consulte a su médico o farmacéutico para evaluar su dolor de cabeza y obtener la indicación adecuada. Mientras tanto, puede intentar descansar en un lugar oscuro y fresco o aplicar compresas frías en la frente.",
+          "elapsed_s": 0.35,
+          "tokens_per_s": 211.5
+        },
+        {
+          "ok": true,
+          "text": "Me alegra que me lo preguntes, pero no te puedo decir si sirve o no. Tomar medicamentos que no son tuyos puede ser peligroso. Llama a tu médico o a una enfermera y cuéntales lo que sientes para que te receten lo adecuado.",
+          "elapsed_s": 0.222,
+          "tokens_per_s": 265.7
+        }
+      ],
+      "instruccion_concisa": [
+        {
+          "ok": true,
+          "text": "Aún no tengo cargada tu lista de medicamentos, por lo que no puedo decirte qué tomas pendientes hoy. Si te la proporcionas, yo puedo ayudarte a recordar cuándo tomarla para que no olvides nada.",
+          "elapsed_s": 0.338,
+          "tokens_per_s": 136.2
+        },
+        {
+          "ok": true,
+          "text": "Aún tengo que calibrar mi sistema para ver tus citas médicas con exactitud, así que por ahora no puedo darte esa lista sin arriesgar errores. Te sugiero revisar tu tarjetero o llamar al médico para confirmar la hora de tu primera toma.",
+          "elapsed_s": 0.334,
+          "tokens_per_s": 170.8
+        },
+        {
+          "ok": false,
+          "error": "Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+          "elapsed_s": 12.242
+        }
+      ]
+    }
+  },
+  "streaming_experiment": {
+    "openai/gpt-oss-120b": {
+      "ok": false,
+      "error": "Completions.create() got an unexpected keyword argument 'stream_options'"
+    },
+    "openai/gpt-oss-20b": {
+      "ok": false,
+      "error": "Completions.create() got an unexpected keyword argument 'stream_options'"
+    },
+    "qwen/qwen3.8-27b": {
+      "ok": false,
+      "error": "Completions.create() got an unexpected keyword argument 'stream_options'"
+    }
+  }
+}

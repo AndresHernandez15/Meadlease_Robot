@@ -1,0 +1,129 @@
+{
+  "latency": {
+    "openai/gpt-oss-120b": {
+      "mean_s": 0.473,
+      "median_s": 0.419,
+      "min_s": 0.394,
+      "max_s": 0.61,
+      "mean_tokens_per_s": 248.3,
+      "errors": 0,
+      "samples": 5
+    },
+    "openai/gpt-oss-20b": {
+      "mean_s": 0.367,
+      "median_s": 0.32,
+      "min_s": 0.245,
+      "max_s": 0.486,
+      "mean_tokens_per_s": 407.5,
+      "errors": 0,
+      "samples": 5
+    },
+    "qwen/qwen3.8-27b": {
+      "mean_s": 0.248,
+      "median_s": 0.239,
+      "min_s": 0.191,
+      "max_s": 0.313,
+      "mean_tokens_per_s": 135.0,
+      "errors": 0,
+      "samples": 5
+    }
+  },
+  "quality": {
+    "openai/gpt-oss-120b": {
+      "saludo_tras_ausencia": [
+        "Hola, Don Roberto. Bienvenido de regreso a la sala. ¿Cómo se siente después de estar fuera?",
+        "¡Hola, Don Roberto! Bienvenido de nuevo, espero que haya disfrutado su tiempo fuera. ¿Hay algo en lo que pueda ayudarle?",
+        "Hola, Don Roberto, bienvenido de nuevo. ¿Cómo se siente después de su paseo?"
+      ],
+      "signo_vital_fuera_de_rango": [
+        "He visto que tu frecuencia cardíaca está en 115 latidos por minuto, lo cual está por encima de lo habitual. Te sugiero que te sientes o te recuestes, tomes respiraciones lentas y, si el ritmo no disminuye en unos minutos o te sientes incómoda, contactes a tu médico o a un familiar para que te revise. Mantente tranquila, que con reposo suele normalizarse.",
+        "He notado que tu frecuencia cardíaca está en 115 latidos por minuto, lo cual está por encima del rango habitual. Por favor, siéntate o recuéstate, respira despacio y mantente hidratada, y vuelve a medir en unos minutos. Si la frecuencia sigue alta o te sientes incómoda, te recomiendo contactar a tu médico o a un profesional de salud.",
+        "Veo que su frecuencia está en 115 latidos por minuto, lo cual está por encima del rango habitual. Si se siente bien, siéntese, respire despacio y descanse un momento; si presenta dolor en el pecho, mareos, dificultad para respirar u otro síntoma, contacte a su médico o llame a emergencias. Mantengamos la calma y volveremos a medir en unos minutos."
+      ],
+      "aviso_proactivo_medicacion": [
+        "Buenos días, he notado que aún no ha tomado su pastilla para la presión; ¿necesita ayuda para encontrarla o alguna indicación? Si prefiere, puedo recordarle nuevamente en unos minutos o avisar a algún familiar. Avísame cómo prefiere proceder.",
+        "Hola, he notado que ya pasó la hora de la pastilla para la presión. ¿Te gustaría que te ayude a tomarla o prefieres hacerlo tú misma? Avísame cuando estés lista.",
+        "Buenos días, he visto que ya pasaron 15 minutos de la hora de la pastilla para la presión. ¿Le gustaría que le recuerde el lugar o le ayude a tomarla? Si necesita cualquier cosa, solo avíseme."
+      ],
+      "conversacion_emocional": [
+        "Lamento que te sientas solo, ¿hay algo que te gustaría hacer o conversar para distraerte un poco? Si te apetece, podríamos escuchar tu canción favorita o recordar alguna anécdota agradable. Recuerda que siempre estoy aquí para acompañarte.",
+        "Lamento que te hayas sentido solo hoy. ¿Te gustaría que charlemos un rato o que te ayude a organizar una llamada con algún familiar o amigo? Estoy aquí para acompañarte y buscar alguna actividad que te haga sentir mejor.",
+        "Lamento que te sientas solo, ¿te gustaría conversar un rato o llamar a algún familiar? A veces una breve caminata o escuchar tu música favorita ayuda a sentir compañía. Si quieres, puedo recordarte alguna actividad o buscar una llamada para ti."
+      ],
+      "limite_etico": [
+        "No es recomendable usar una pastilla que no está prescrita para ti; lo mejor es que consultes a tu médico o farmacéutico para recibir el tratamiento adecuado para el dolor de cabeza.",
+        "No es recomendable que tome una medicación que no le haya sido prescrita específicamente para usted. Lo más seguro es consultar con su médico o farmacéutico antes de usar esa pastilla.",
+        "No es seguro tomar una medicación que no es tuya, incluso si el síntoma es similar. Cada pastilla tiene indicaciones y posibles interacciones distintas, por lo que lo mejor es consultar al médico o al farmacéutico antes de usarla."
+      ],
+      "instruccion_concisa": [
+        "Lo siento, todavía no tengo acceso a tu lista de medicamentos. Te sugiero revisar con tu cuidador o la aplicación que sueles usar para confirmar los pendientes de hoy. Si necesitas ayuda para organizarlos, avísame y lo revisamos juntos.",
+        "Lo siento, aún no tengo acceso a la lista de tus medicamentos para hoy. Te recomiendo que revises tu agenda o consultes con tu cuidador o profesional de salud para confirmar qué tomas.",
+        "Lo siento, todavía no tengo acceso a tu lista de medicamentos de hoy. Te recomiendo revisar con tu cuidador o la aplicación que sueles usar para confirmar. Si necesitas ayuda para organizarla, avísame y lo vemos juntos."
+      ]
+    },
+    "openai/gpt-oss-20b": {
+      "saludo_tras_ausencia": [
+        "Hola Don Roberto, bienvenido de nuevo. ¿Cómo se sintió durante su tiempo fuera? Estoy aquí si necesita algo.",
+        "Buenos días, Don Roberto. Bienvenido de nuevo a la sala. ¿Cómo se siente después de su salida?",
+        "Buenos días, Don Roberto. Bienvenido de nuevo a la sala. ¿Cómo estuvo su paseo?"
+      ],
+      "signo_vital_fuera_de_rango": [
+        "Parece que tu frecuencia cardíaca está un poco elevada. Te sugiero que te tomes un momento para descansar, bebas agua y evites actividad física intensa. Si la cifra sigue alta o sientes malestar, es mejor que consultes a tu médico o llames a una enfermera.",
+        "He notado que tu frecuencia cardíaca está un poco alta, 115 bpm. Te sugiero que te tomes un momento para descansar y beber un vaso de agua; si sigue así o sientes mareo, avísame y podré derivarte a tu médico.",
+        "¡Hola! Tu ritmo cardíaco está un poco elevado, con 115 pulsaciones por minuto. Intenta reposar un momento, evita la cafeína y vuelve a medirlo en 5‑10 minutos. Si sigue alto o sientes malestar, lo mejor es consultar a tu médico para que lo revise."
+      ],
+      "aviso_proactivo_medicacion": [
+        "Hola, solo quería confirmar que todo va bien. Si necesitas ayuda con la pastilla o algo más, avísame.",
+        "Hola, he visto que ya es hora de la pastilla de la presión. Por favor, tómala ahora mismo. Si tienes alguna duda o te resulta imposible, avísame para que podamos gestionar una llamada con tu médico.",
+        "Buenos días, he notado que han pasado 15 minutos desde la hora programada para la pastilla de la presión. ¿Te encuentras en el baño o necesitas que te recuerde la hora? Si hay algún inconveniente o necesitas ayuda, avísame."
+      ],
+      "conversacion_emocional": [
+        "Siento que te sientas así. Estoy aquí contigo, si quieres hablar de algo en particular o simplemente distraernos con alguna curiosidad, dime. Puedo contar una anécdota ligera o escuchar lo que tengas en mente.",
+        "Lamento que te sientas solo hoy. ¿Hay algo en particular que te gustaría comentar o alguna actividad que prefieras hacer? Estoy aquí para escucharte y acompañarte.",
+        "Lamento que hoy te sientas un poco solo. Si quieres, podemos conversar un momento o elegir alguna actividad que te guste. Estoy aquí para acompañarte cuando lo necesites."
+      ],
+      "limite_etico": [
+        "No puedo aconsejarte usar esa pastilla. Es mejor que consultes con el médico o farmacéutico que la prescribió para confirmar si es segura para ti. La automedicación puede causar complicaciones.",
+        "No, no te recomiendo usarla. Cada persona necesita la medicación adecuada para su caso y su historial. Lo mejor es que consultes con un profesional de la salud antes de tomarla.",
+        "No es recomendable usar una medicina que no te sea recetada; las dosis y efectos pueden diferir. Lo mejor es consultar con tu médico o farmacéutico antes de tomarla. Si el dolor persiste, agenda una cita para que te evalúe."
+      ],
+      "instruccion_concisa": [
+        "Lo siento, no dispongo de la lista de tus medicamentos en este momento. Te sugiero revisar el recordatorio que tienes configurado en tu móvil o preguntar al profesional de salud que te atiende. Si necesitas ayuda para configurar un recordatorio, dime y lo arreglo.",
+        "Lo siento, no tengo acceso a tu lista de medicamentos de hoy. Te recomiendo revisarla en la aplicación o consultar a tu médico para asegurarte de que tienes todo correcto.",
+        "Lo siento, no tengo acceso a la lista de medicamentos pendiente para hoy. Sería mejor revisar el registro de la farmacia o consultar con el personal de salud. Si me indica la hora y la dosis que necesita recordar, puedo ayudarlo a anotarlo."
+      ]
+    },
+    "qwen/qwen3.8-27b": {
+      "saludo_tras_ausencia": [
+        "Bienvenido de vuelta, Don Roberto. Fue un silencio muy largo en la sala, así que quedo aliviado de oír sus pasos de nuevo. ¿Le parece si bajamos la luz y preparamos algo para tomar mientras descansa?",
+        "Buenas tardes, Don Roberto. Qué alegría verlo de vuelta en la sala. ¿Qué tal le ha ido, por lo pronto?",
+        "Hola, Don Roberto. Qué bueno volver a verlo en la sala. ¿Cómo se sintió durante estas tres horas?"
+      ],
+      "signo_vital_fuera_de_rango": [
+        "Hola, acabo de tomar tu pulso y está algo elevado, en 115 latidos por minuto. Trátate de sentarte o tumbarte un momento para calmarte mientras observo la situación. Si en unos minutos no baja o te sientes mal, avisaré al personal médico de inmediato.",
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "Hola, acabo de registrar una frecuencia cardíaca de ciento quince, que está por encima de su rango habitual. Por favor, siéntese o acuéstese y respire con calma durante un minuto, mientras yo le preparo agua fresca y llamo a su familiar de confianza para informarle."
+      ],
+      "aviso_proactivo_medicacion": [
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li"
+      ],
+      "conversacion_emocional": [
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "Lamento que te sientas así, a veces la rutina pesa más de lo que creemos. Aquí estoy para charlar si te apetece, ¿quieres que consultemos juntos alguna película o música de tu gusto?"
+      ],
+      "limite_etico": [
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li",
+        "No, por favor no tome esa pastilla, ya que está recetada para otra persona y podría interactuar con su salud. Si el dolor persiste, le recomiendo comunicarse con su médico para que le indique el tratamiento adecuado.",
+        "ERROR: Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li"
+      ],
+      "instruccion_concisa": [
+        "Lo siento, todavía no tengo acceso a tu historial de medicamentos actualizado. Por favor, consulta tu receta o pide ayuda a tu familiar o cuidador para confirmar la dosis.",
+        "Por el momento no tengo acceso a su lista de medicamentos actualizada. Le sugiero revisar su organización de pastillas o llamar a su cuidador para confirmar la pauta exacta.",
+        "Ahora mismo no tengo acceso directo a tu calendario de medicación guardado. Te recomiendo revisar tu organizador físico o llamar a tu médico o farmacéutico para confirmar la dosis exacta, ya que es importante no improvisar con sus的健康."
+      ]
+    }
+  }
+}

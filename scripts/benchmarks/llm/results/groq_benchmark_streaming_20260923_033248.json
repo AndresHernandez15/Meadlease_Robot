@@ -1,0 +1,25 @@
+{
+  "quality_latency": null,
+  "streaming_experiment": {
+    "openai/gpt-oss-120b": {
+      "ok": true,
+      "text": "Puedo recordarte tus horarios de medicación, ayudarte a organizar tus citas y actividades, y estar aquí para conversar cuando lo necesites. También puedo controlar dispositivos del hogar, como luces o termostato, y avisar a tus familiares o cuidadores si algo fuera de lo normal. Todo con un tono calmado y cercano, como un buen acompañante.",
+      "ttft_s": 0.587,
+      "total_s": 0.741,
+      "tokens_per_s": 902.3,
+      "completion_tokens": 139
+    },
+    "openai/gpt-oss-20b": {
+      "ok": true,
+      "text": "Hola, soy Koda, tu asistente doméstico. Puedo recordarte tomarte la medicina, avisarte cuando sea hora de una consulta médica o ayudarte a programar tareas del hogar. También puedo conversar, hacerte compañía y buscar información confiable cuando la necesites.",
+      "ttft_s": 0.234,
+      "total_s": 0.317,
+      "tokens_per_s": 1165.5,
+      "completion_tokens": 97
+    },
+    "qwen/qwen3.8-27b": {
+      "ok": false,
+      "error": "Error code: 429 - {'error': {'message': \"Request too large for model `qwen/qwen3.8-27b` in organization `org_01jwahvmx0fm7a6x0mth2as60w` service tier `on_demand` on output tokens per minute (OTPM): Li"
+    }
+  }
+}

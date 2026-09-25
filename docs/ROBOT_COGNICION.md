@@ -76,8 +76,15 @@ Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activame
 | `extend_vitals_arm()` | Trivial | Aísla movimiento del servo MG996R ya existente |
 | `follow_person(duration_s)` | **Alta** | La más costosa — última prioridad |
 | `greet()` | Baja | Combinación: frase + expresión facial amigable + ligero movimiento del brazo de signos vitales (el robot no tiene brazo/cuello motorizado dedicado a saludar) |
+| `describe_surroundings(question)` | **Exploratoria** | Responde preguntas tipo "¿cómo estoy vestido?" o "¿qué puedes ver?" tomando una foto con la cámara y usando un modelo de visión (candidato: Qwen VL vía Groq, mismo proveedor que el resto de la cadena de fallback). Depende de un benchmark aparte (calidad de descripción, latencia) todavía no hecho — ver nota abajo |
 
 **Comportamientos compuestos (combinan herramientas atómicas, no son herramientas nuevas):** `spin_and_greet` (turn_in_place + greet, útil para arranque de demo), mostrar compartimentos de medicamentos en pantalla al usar `list_medications`.
+
+**Nota de diseño — `describe_surroundings` (exploratoria, no decidida):** surge de aprovechar que Qwen ya es parte de la cadena de fallback de texto (`qwen/qwen3.8-27b`, tercer fallback — ver Decisiones técnicas) y también tiene una variante con reconocimiento de imágenes. Dos formas de implementarlo, todavía sin decidir cuál (o si directamente se descarta por alcance de prototipo):
+1. **Dos pasos:** la tool toma la foto, Qwen VL la describe en texto, y ese texto se inyecta de vuelta al LLM principal (el que esté atendiendo la conversación) para que responda en su propia personalidad.
+2. **Un paso:** se le pasa a Qwen VL la foto junto con la pregunta original del usuario y responde directamente, sin pasar por el LLM principal — más simple y potencialmente más rápido, pero la respuesta no pasa por la personalidad/validador ético estructural del agente principal a menos que se replique ahí también.
+
+Pendiente: benchmark de calidad/latencia de Qwen VL antes de decidir cuál de las dos formas (o ninguna, si no alcanza el tiempo).
 
 **Nota de diseño — traducción de lenguaje natural a `medication_id`:** `dispense_medication` recibe un `medication_id`, no el nombre hablado — la traducción de lenguaje natural ("la de la presión") al ID correcto la resuelve el LLM con el contexto de `list_medications` en su prompt. **Validación obligatoria:** el `medication_id` (y en general cualquier valor fijo proveniente de la base de datos — IDs de medicamento, de usuario, de waypoint, etc.) que el LLM incluya en una llamada a herramienta debe validarse contra la base de datos antes de ejecutar la acción, en vez de confiar en que el LLM lo generó correctamente — mismo principio del validador ético estructural, aplicado aquí como validación estructural de datos.
 
@@ -92,3 +99,4 @@ Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activame
 - **Rangos de referencia de signos vitales** que disparan la reacción visual "fuera de rango" — no están enumerados (bpm, SpO2, temperatura).
 - **Ubicación final del Módulo 5 y Capa 9**: se incluyeron aquí por no tener archivo dedicado en la separación solicitada — confirmar si esta ubicación es correcta o si merecen archivo propio.
 - **Detalle de `save_note` y `update_user_context`**: el propósito de cada una ya está diferenciado (bitácora situacional/médica vs. perfil de personalidad), pero falta especificar límite de longitud de texto en ambas, y el mecanismo exacto para inyectar el `contexto_relevante` actual en el prompt de `update_user_context` antes de que el LLM decida el texto de reemplazo.
+- **`describe_surroundings` (herramienta de visión vía Qwen VL)**: idea exploratoria, no decidida — depende de un benchmark aparte de calidad/latencia del modelo de visión que todavía no se ha hecho. Ver nota de diseño en la sección de herramientas demostrativas.
