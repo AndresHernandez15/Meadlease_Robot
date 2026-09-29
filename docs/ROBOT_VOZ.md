@@ -18,6 +18,7 @@
 | Escalación a humano | **Vía bot de Telegram (real, ya funcional)** — el robot confirma verbalmente el envío | En vivo, notificación real llega al celular del presentador |
 | Expresividad emocional coherente con HMI | Esencial | Constante |
 | Filler / respuesta mientras procesa | Streaming de LLM a TTS frase por frase (mayor impacto real en latencia) + banco de frases cortas pre-escritas/pre-sintetizadas para cuando el agente invoca una herramienta que toma tiempo real (navegar, dispensar, medir) | Transversal |
+| Localización de la fuente sonora (giro hacia el hablante) | **Opcional/bonus.** Solo azimut, aproximada — el robot gira sutilmente hacia el hablante antes de responder. No esencial para la demo | Bonus, si el tiempo alcanza |
 
 ## Decisiones técnicas (Capa 6)
 
@@ -43,10 +44,21 @@ Todos deben medirse en el hardware real (Dell Inspiron, micrófono real), no con
 | 3 | TTS | Azure `es-PE-CamilaNeural` vs Kokoro | Naturalidad de voz en español, latencia real en el i3, viabilidad de correr 100% local |
 | 4 | STT offline (emergencia) | Vosk vs sherpa-onnx | Precisión con frases de emergencia en español, latencia, consumo |
 
+## Localización de la fuente sonora (diseño tentativo, bonus)
+
+Ver ADR-033 en `DECISIONES_TECNICAS.md` para contexto completo, resultados preliminares y limitaciones. Diseño tentativo, no implementado:
+
+- La estimación de ángulo (GCC-PHAT, solo azimut) se calcula **únicamente sobre el segmento de audio que disparó wake word/VAD** — nunca mientras el robot habla (evita captar su propia voz) ni mientras se mueve (evita ruido de motores).
+- Se toma la **mediana de varias ventanas** de ese segmento, no una lectura única, para reducir el efecto de ruido puntual.
+- El robot solo gira si `|ángulo| > ~20°`, y el giro se limita a la **mitad del ángulo estimado** (corrección conservadora, no un apuntado exacto).
+- El módulo de voz publicaría el ángulo estimado; la decisión de girar (y la ejecución vía `turn_in_place`) queda del lado del Behavior Tree (ver `ROBOT_COGNICION.md`).
+
+**Nota de pipeline:** el array del Kinect entrega S32_LE, 4 canales, 16 kHz — antes de openWakeWord/TEN VAD hace falta convertir a 16 bits mono/16 kHz, con ganancia fija calibrada o AGC suave (no normalización sobre archivo completo, que distorsiona la dinámica de la voz).
+
 ---
 
 ## Información faltante / pendiente de revisión
 
 - **Resultados reales de los 4 benchmarks:** aún no ejecutados — sección a llenar con números concretos tras Fase 1 y re-validación en Fase 3.
 - **Manejo de UX ante pérdida total de conectividad** durante una conversación normal (más allá del "indicador discreto de conectividad" del HMI y de los comandos offline de emergencia) — no descrito.
-- **Micrófono(s) específico(s):** no se indica modelo/ubicación física del micrófono usado para captura de voz, solo "micrófono real".
+- **Micrófono:** candidato validado — array de 4 canales del Kinect V2 (aparece en ALSA como "Xbox NUI Sensor", S32_LE/4ch/16 kHz fijo, funciona por USB 2.0). Probado en el Asus: señal cruda débil (pico ≈ -34 dB, RMS ≈ -52 dB) pero con ganancia normalizada la voz se entiende con claridad incluso con ruido de fondo (3 impresoras 3D). **Pendiente:** re-validar dentro de la carcasa cerrada (Fase 3, la acústica cambia) y pruebas a 2 y 3 m de distancia.

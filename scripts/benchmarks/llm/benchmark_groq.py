@@ -83,11 +83,30 @@ QUALITY_REPEATS = 3  # antes 1 — con solo 3 modelos ya cerca en calidad, una m
 MAX_COMPLETION_TOKENS = 300
 
 # openai/gpt-oss-20b dio 2 respuestas rotas de 18 (una vacía, una cortada a
-# mitad de frase) en la corrida anterior, sospecha: gastó todo el budget de
+# mitad de frase) en una corrida anterior, sospecha: gastó todo el budget de
 # tokens en razonamiento oculto y no le quedó nada para la respuesta visible.
 # Bajamos el esfuerzo de razonamiento para dejar más presupuesto a la
-# respuesta real (los tres modelos aceptan el parámetro).
+# respuesta real. Confirmado con datos: arregló gpt-oss-20b (0 respuestas
+# rotas tras el cambio), pero a qwen le fue peor con el parámetro puesto
+# (latencias de hasta 18s) — así que solo se aplica a los modelos gpt-oss.
 REASONING_EFFORT = "low"
+
+# gpt-oss-* se dejan en su default (1.0, sin fijar el parámetro). qwen se
+# ajusta manualmente: 0.7/0.80 en vez de su default, decisión de Andrés.
+QWEN_TEMPERATURE = 0.7
+QWEN_TOP_P = 0.80
+
+# service_tier: se probaron los 4 valores en vivo contra esta cuenta —
+# "auto"/"flex"/"performance" dan 400 (no disponibles en este tier gratuito),
+# solo "on_demand" funciona, y ya es el default. No hay nada que comparar,
+# por eso no se agrega como parámetro al benchmark.
+
+
+def extra_kwargs(model: str) -> dict:
+    if "qwen" in model:
+        return {"temperature": QWEN_TEMPERATURE, "top_p": QWEN_TOP_P}
+    return {"reasoning_effort": REASONING_EFFORT}
+
 
 # Prueba experimental aparte: un solo prompt por modelo, con streaming activado,
 # para ver time-to-first-token y tokens/s en vivo — no forma parte de la
@@ -99,13 +118,18 @@ RESULTS_DIR = Path(__file__).parent / "results"
 
 def run_benchmark(client: Groq) -> dict:
     print(f"\n{'='*100}\nCALIDAD + LATENCIA ({QUALITY_REPEATS} repeticiones por prompt)\n{'='*100}")
-    results = {}
-    for model in MODELS:
-        results[model] = {}
-        print(f"\n--- {model} ---")
-        for key, prompt in QUALITY_PROMPTS.items():
-            attempts = []
-            for i in range(QUALITY_REPEATS):
+    # Orden de ejecución: prompt -> repetición -> modelo (en vez de modelo -> prompt
+    # -> repetición). Así las llamadas a un mismo modelo quedan espaciadas en el
+    # tiempo por las llamadas a los otros dos modelos en el medio, en vez de ir
+    # 18 seguidas al mismo modelo — ayuda a no pegarle de golpe al límite por
+    # minuto (OTPM) de un solo modelo. El resultado se sigue organizando por
+    # modelo (results[model][key]) para que el JSON quede igual de legible.
+    results = {model: {key: [] for key in QUALITY_PROMPTS} for model in MODELS}
+
+    for key, prompt in QUALITY_PROMPTS.items():
+        for i in range(QUALITY_REPEATS):
+            print(f"\n--- [{key}] repetición {i+1}/{QUALITY_REPEATS} ---")
+            for model in MODELS:
                 start = time.perf_counter()
                 try:
                     response = client.chat.completions.create(
@@ -115,12 +139,12 @@ def run_benchmark(client: Groq) -> dict:
                             {"role": "user", "content": prompt},
                         ],
                         max_completion_tokens=MAX_COMPLETION_TOKENS,
-                        reasoning_effort=REASONING_EFFORT,
+                        **extra_kwargs(model),
                     )
                     elapsed = time.perf_counter() - start
                     text = response.choices[0].message.content
                     completion_tokens = response.usage.completion_tokens
-                    attempts.append(
+                    results[model][key].append(
                         {
                             "ok": True,
                             "text": text,
@@ -128,14 +152,13 @@ def run_benchmark(client: Groq) -> dict:
                             "tokens_per_s": round(completion_tokens / elapsed, 1) if completion_tokens else None,
                         }
                     )
-                    print(f"\n[{key}] intento {i+1}/{QUALITY_REPEATS} ({elapsed:.2f}s)\n{text}")
+                    print(f"\n[{model}] ({elapsed:.2f}s)\n{text}")
                 except Exception as e:
                     elapsed = time.perf_counter() - start
                     err = str(e)[:200]
-                    attempts.append({"ok": False, "error": err, "elapsed_s": round(elapsed, 3)})
-                    print(f"\n[{key}] intento {i+1}/{QUALITY_REPEATS} ({elapsed:.2f}s) ERROR: {err}")
+                    results[model][key].append({"ok": False, "error": err, "elapsed_s": round(elapsed, 3)})
+                    print(f"\n[{model}] ({elapsed:.2f}s) ERROR: {err}")
                 time.sleep(1)
-            results[model][key] = attempts
     return results
 
 
@@ -181,8 +204,8 @@ def run_streaming_experiment(client: Groq) -> dict:
                     {"role": "user", "content": STREAMING_PROMPT},
                 ],
                 max_completion_tokens=MAX_COMPLETION_TOKENS,
-                reasoning_effort=REASONING_EFFORT,
                 stream=True,
+                **extra_kwargs(model),
             )
             for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:

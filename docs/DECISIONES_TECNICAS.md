@@ -71,7 +71,17 @@
 - **Riesgo identificado:** Groq fue adquirida por Nvidia a inicios de 2026, con reducción de personal técnico y catálogo curado (~12 modelos), patrón de deprecación documentado.
 - **Mitigación:** Pydantic AI es agnóstico de proveedor — cambiar proveedor es cambio de configuración, no reescritura de código.
 - **Fallback:** cadena de 3 modelos con la key principal de Groq → 3 modelos con la key secundaria de Groq, suficiente sin depender de un segundo proveedor.
-- **Modelo inicial:** Llama 3.3 70B Versatile.
+- **Modelo inicial (actualizado, benchmark real — septiembre 2026):** `Llama 3.3 70B Versatile` (decisión original de este ADR) ya no existe en el catálogo de Groq — confirma en la práctica el riesgo de plataforma señalado arriba. Se hizo benchmark real de alternativas (`scripts/benchmarks/llm/`, resultados crudos en `scripts/benchmarks/llm/results/`) sobre todo el catálogo de chat de Groq y los modelos `:free` de OpenRouter (como red de seguridad adicional evaluada, no solo Groq). OpenRouter se descartó por latencia (2-16s por respuesta en tier gratuito vs <1s en Groq). Cerebras y SambaNova se descartaron antes del benchmark de calidad: su "gratis" es un saldo fijo que se agota (no un tier gratuito perpetuo con límites por tasa). `allam-2-7b` se descartó por mezclar palabras en árabe en las respuestas.
+- **Orden de fallback (3 modelos, misma key):**
+  1. `openai/gpt-oss-120b` — primario. Único sin fallos/respuestas vacías o cortadas en el benchmark de calidad (54 llamadas), mejor consistencia entre repeticiones.
+  2. `openai/gpt-oss-20b` — primer fallback. Buena calidad y el más rápido en tok/s, pero con reliability inferior al 120b (respuestas vacías/cortadas en la prueba sin `reasoning_effort` — resuelto fijando `reasoning_effort="low"`, ver parámetros abajo).
+  3. `qwen/qwen3.8-27b` — último recurso. El más rápido en latencia bruta cuando responde bien, pero el más expuesto a degradación bajo el tier gratuito de Groq: dio 429 por límite de tokens de salida/min (OTPM) en una corrida, y en otra corrida (sin error) tuvo latencias de hasta 18s por congestión de cola (`queue_time`) — el proveedor lo pone en un pool con menos capacidad reservada. Por eso queda como el modelo menos usado en la cadena, no como primario ni secundario.
+  - La misma cadena de 3 modelos se reutiliza para la key secundaria de Groq (no se volvió a benchmarkear con esa key).
+- **Parámetros fijados tras el benchmark (por modelo, no uniformes):**
+  - `max_completion_tokens=300` para los 3 — evita que `qwen` pida más tokens de los que su límite de tier gratuito permite (1000 OTPM) y refuerza el límite de "máx. 3 frases" que ya pide el system prompt de Koda para voz.
+  - `reasoning_effort="low"` solo en los `gpt-oss-*` — corrige respuestas vacías/cortadas del `gpt-oss-20b` causadas por gastar el budget de tokens en razonamiento oculto. A `qwen` le empeoró la latencia con este parámetro puesto, así que se le deja sin él.
+  - `temperature=0.7`, `top_p=0.80` solo en `qwen` (en vez de su default) — decisión de ajuste manual de Andrés. Los `gpt-oss-*` se dejan en su default (1.0).
+  - `service_tier`: se probaron los 4 valores contra la cuenta real; solo `on_demand` está disponible en este tier gratuito (ya es el default) — no aplica como parámetro de ajuste.
 
 ### ADR-014 — Framework de Behavior Tree: py_trees + py_trees_ros
 - **Estado:** Aceptada
@@ -173,6 +183,19 @@
 - **Contexto:** El roadmap original de Fase 0 contemplaba configurar VSCode Remote-SSH entre el Asus y el Dell para editar/depurar directo sobre el Dell desde el Asus.
 - **Decisión:** Se descarta Remote-SSH. Cada máquina tiene su propio `venv --system-site-packages`. El desarrollo y la configuración ocurren en el Asus; el Dell se usa vía `git pull` únicamente para pruebas que dependen de su hardware real (micrófono, latencia) y, más adelante, para integración final y la demo.
 - **Por qué se descartó:** Remote-SSH añade una capa de configuración y dependencia de red sin necesidad real — ambas máquinas corren el mismo SO/misma versión de ROS2, así que un `venv` propio en cada una más `git pull` ya da paridad de entorno sin la fragilidad de mantener una sesión SSH persistente entre ellas.
+
+### ADR-033 — Localización de fuente sonora con el array del Kinect
+- **Estado:** Diferida (bonus)
+- **Contexto:** El array de micrófonos del Kinect V2 (4 canales, ver ADR de micrófono en `ROBOT_VOZ.md`/`HARDWARE_FIRMWARE.md`) permite en principio estimar de dónde viene la voz del usuario, para que el robot gire sutilmente hacia él antes de responder. No es un requisito funcional del proyecto, es una feature opcional/bonus.
+- **Decisión:** Si se implementa, usar **GCC-PHAT** entre los canales extremos del array (canales 1 y 4) para estimar **solo azimut** (ángulo horizontal), no elevación ni distancia. El cálculo se restringe al segmento de audio que dispara wake word/VAD, usando la mediana de varias ventanas, y el robot gira solo si el ángulo estimado supera ~20°, con giro limitado a la mitad del ángulo (ver diseño tentativo en `ROBOT_VOZ.md`).
+- **Resultados preliminares (prueba en el Asus, sin validar formalmente):** separación entre canales extremos asumida `D ≈ 0.22 m` (estimada, no verificada con medición física). Con esa `D`, GCC-PHAT dio: centro ≈ -1°, izquierda ≈ -40° y -43° (dos ventanas distintas). Lado derecho **no validado** — el hablante quedó casi al centro en esa prueba y dio 0.7° en vez de un ángulo claramente positivo. Script de referencia: `scripts/benchmarks/kinect_array.py`.
+- **Limitaciones conocidas:**
+  - Ambigüedad adelante/atrás inherente a un array lineal (GCC-PHAT con 2 micrófonos no distingue si la fuente está delante o detrás del eje del array).
+  - Sensible a ruido y reverberación del ambiente real (la prueba preliminar se hizo con impresoras 3D de fondo, no en silencio).
+  - La distancia `D` entre micrófonos usada en el cálculo es una estimación, no una medición verificada — afecta directamente la precisión del ángulo.
+  - Lado derecho del array sin validar todavía (ver resultados preliminares arriba).
+  - Pendiente re-validar todo dentro de la carcasa cerrada (Fase 3) — la acústica y la posición relativa de los micrófonos respecto al usuario pueden cambiar.
+- **Alternativa no evaluada:** beamforming completo (más preciso pero mucho más costoso de implementar/afinar para una feature bonus) — no se investigó, se optó directamente por el enfoque más simple (GCC-PHAT de 2 canales, solo azimut) dado el alcance de prototipo.
 
 ---
 

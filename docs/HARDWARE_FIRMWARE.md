@@ -34,7 +34,7 @@
 
 | Sensor | Modelo | Función | Alimentación | Ubicación |
 |---|---|---|---|---|
-| Kinect V2 | Microsoft Kinect V2 | SLAM RGB-D + detección de personas + array de micrófonos de 4 canales | 12V | Pecho (~88 cm) |
+| Kinect V2 | Microsoft Kinect V2 | SLAM RGB-D + detección de personas + array de micrófonos de 4 canales — captura vía ALSA como "Xbox NUI Sensor", formato fijo S32_LE, 4 canales, 16000 Hz, funciona por USB 2.0 (el audio no requiere SuperSpeed). ✅ Validado en el Asus — pendiente en el Dell y dentro de la carcasa cerrada | 12V | Pecho (~88 cm) |
 | Cámara Dell | Integrada en placa madre | Reconocimiento facial | Incluida en el Dell | Cabeza |
 | ESP32-CAM | Módulo dedicado | Verificación visual de pastilla en el cajón de salida | 5V | Torso |
 

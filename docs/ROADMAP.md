@@ -17,6 +17,7 @@
 
 - [ ] **Percepción** con cámara Dell real: detección de presencia (MediaPipe Pose), reconocimiento facial (SCRFD+ArcFace+ONNX) — validar aquí calidad/FOV real de la cámara
 - [ ] **Voz** con micrófono real: los 4 benchmarks pendientes (wake word, VAD, TTS, STT offline) + pipeline completo integrado
+- [ ] **(Opcional/bonus) Validar localización de fuente sonora:** con el Kinect rotado a un ángulo real conocido y medido, tomar 10+ ventanas por posición, y recalibrar la separación `D` del array con `D_nuevo = D·sin(ángulo_estimado)/sin(ángulo_real)` (ver ADR-033 en `DECISIONES_TECNICAS.md`)
 - [ ] **Agente (Pydantic AI):** loop de conversación con Groq + fallback 3+3, herramientas implementadas como **stubs** primero, validador ético estructural
 - [ ] **Behavior Tree (py_trees):** árbol raíz con jerarquía de prioridad, acciones como stubs al inicio
 - [ ] **HMI (NiceGUI):** estados + dashboard + mapa (datos de prueba) + control remoto QR — conectado a estados simulados primero, ROS2 real después
@@ -43,7 +44,7 @@
 
 - [ ] **PCB de movilidad lista (Sergio)** → `navigate_to`/`find_user` reales, UART Movilidad end-to-end, `esp32_bridge_node` real
 - [ ] **Pastillero con ajustes terminados (Linda)** → `dispense_medication` real, UART Médica end-to-end
-- [ ] **Carcasa completamente armada (post-procesado)** → montaje definitivo Dell/Kinect/cámara/parlante, validación de cableado, **re-validar benchmarks de voz dentro de la carcasa cerrada** (la acústica cambia respecto al Dell suelto en escritorio)
+- [ ] **Carcasa completamente armada (post-procesado)** → montaje definitivo Dell/Kinect/cámara/parlante, validación de cableado, **re-validar benchmarks de voz dentro de la carcasa cerrada** (la acústica cambia respecto al Dell suelto en escritorio) — incluye repetir, si aplica, la validación de localización de fuente sonora (bonus, ver Fase 1 y ADR-033)
 
 **Salida esperada:** robot físico completo respondiendo a todas las herramientas del agente con hardware real, no stubs.
 
