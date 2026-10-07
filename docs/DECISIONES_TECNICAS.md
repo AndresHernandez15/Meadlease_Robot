@@ -1,206 +1,177 @@
-# MEADLEASE — REGISTRO DE DECISIONES TÉCNICAS (ADR)
+# MEADLEASE — DECISIONES TÉCNICAS (ADR)
 
-> Formato tipo ADR (Architecture Decision Record), conservado del proyecto anterior. Cada entrada resume: contexto, decisión, alternativas evaluadas y por qué se descartaron, estado.
+Cada entrada resume qué se decidió, qué alternativas se evaluaron y por qué. Este archivo es la única fuente de las justificaciones: los demás documentos solo nombran la decisión y enlazan aquí.
+
+Los ADR se numeran en el orden en que se decide; no se reservan números (por eso no hay ADR-029). Si una decisión cambia, el ADR viejo se marca "Reemplazada por ADR-0XX" en vez de borrarse.
 
 ---
 
-### ADR-001 — Reinicio completo del proyecto desde cero
+### ADR-001 — Reiniciar el proyecto desde cero
 - **Estado:** Aceptada
-- **Contexto:** El sistema anterior se construyó módulo por módulo, optimizando cada uno en aislamiento, sin pensar en integración conjunta ni en cómo cada decisión afecta latencia/memoria/complejidad del sistema completo. Deadline extendido de 1 mayo 2026 a 1 noviembre 2026.
-- **Decisión:** Reconstrucción completa. El código anterior no se reutiliza; se conserva solo como referencia histórica de qué ya funcionó.
+- **Contexto:** el sistema anterior se construyó módulo por módulo, optimizando cada uno por separado, sin pensar en latencia, memoria ni integración del conjunto. El deadline pasó del 1 de mayo al 1 de noviembre de 2026.
+- **Decisión:** reconstrucción completa. El código anterior no se reutiliza; solo sirve como referencia de qué funcionó (en los documentos aparece como "validado en el sistema anterior, por reimplementar").
 
-### ADR-002 — Sistema operativo: Ubuntu 24.04 LTS "Noble"
+### ADR-002 — Ubuntu 24.04 LTS
 - **Estado:** Aceptada
-- **Alternativa evaluada:** Ubuntu 26.04 "Resolute" (LTS, ~3 meses de vida en el momento de decidir).
-- **Por qué se descartó la alternativa:** `libfreenect2`/Kinect V2 es dependencia frágil de comunidad, alto riesgo en un ecosistema recién nacido.
+- **Descartada:** Ubuntu 26.04 (tenía ~3 meses de vida). `libfreenect2` (driver del Kinect V2) es una dependencia frágil de comunidad y era riesgoso en un sistema tan nuevo.
 
-### ADR-003 — Middleware: ROS2 Jazzy Jalisco
+### ADR-003 — ROS 2 Jazzy
 - **Estado:** Aceptada
-- **Alternativa evaluada:** ROS2 Lyrical Luth (LTS, ~2 meses de vida).
-- **Por qué se descartó la alternativa:** mismos errores de mirrors documentados 9 días post-release; Ubuntu 24.04 es solo Tier 3 para Lyrical — no hay combo limpio con Noble.
+- **Descartada:** ROS 2 Lyrical (~2 meses de vida): errores de mirrors y solo Tier 3 en Ubuntu 24.04.
+- **Consecuencia:** Python 3.12.
 
-### ADR-004 — Gestión de entornos Python: `venv --system-site-packages`
+### ADR-004 — Entornos Python: `venv --system-site-packages` + `uv`
 - **Estado:** Aceptada
-- **Alternativas evaluadas:** Conda, Docker.
-- **Por qué se descartaron:** Conda rompe `rclpy` (problema documentado). Docker tiene overhead de RAM/CPU no disponible en el hardware objetivo y DDS entre contenedores es frágil.
-- **Nota:** `venv --system-site-packages` es el patrón oficialmente documentado por ROS2 para mezclar `rclpy` con dependencias externas aisladas. Instalador: `uv` (Astral) en vez de pip tradicional, por velocidad de resolución.
+- **Por qué:** es el patrón que documenta ROS 2 para mezclar `rclpy` con dependencias externas. `uv` resuelve dependencias más rápido que pip.
+- **Descartadas:** Conda (rompe `rclpy`) y Docker (overhead de RAM/CPU que el Dell no tiene, DDS frágil entre contenedores).
 
-### ADR-005 — Puente de comunicación PC↔microcontroladores: STM32 como puente único
+### ADR-005 — STM32 como único puente hacia los microcontroladores
 - **Estado:** Aceptada
-- **Alternativa evaluada:** micro-ROS también en ambos ESP32 (WiFi directo a PC) — viable técnicamente, existe componente oficial micro-ROS para ESP-IDF.
-- **Por qué se descartó:** movimiento/parada de emergencia son capa reactiva y no pueden depender de WiFi — riesgo real en demo con auditorio congestionado.
+- **Decisión:** PC ↔ STM32F411 (micro-ROS por USB-CDC, ya validado) ↔ ESP32 Movilidad y ESP32 Médica por UART.
+- **Descartada:** micro-ROS directo en los ESP32 por WiFi. Es viable, pero movimiento y parada de emergencia no pueden depender del WiFi, menos en un auditorio congestionado.
 
-### ADR-006 — Protocolo UART STM32↔ESP32: trama binaria fija + CRC8
-- **Estado:** Aceptada (especificación de detalle pendiente, ver Fase 2 del roadmap)
-- **Alternativa previa:** texto plano (`"VL:...,VR:...\n"`).
-- **Por qué se cambió:** más eficiente de parsear, detecta corrupción de datos, sigue siendo depurable (logs de valores ya decodificados).
+### ADR-006 — UART con trama binaria + CRC8
+- **Estado:** Aceptada. El contenido de los mensajes se cierra al implementar cada firmware (ADR-028).
+- **Antes:** texto plano (`"VL:...,VR:...\n"`).
+- **Por qué:** más rápido de parsear, detecta corrupción y sigue siendo depurable con logs decodificados.
 
-### ADR-007 — Botón físico de emergencia como interrupción directa al STM32
+### ADR-007 — Parada de emergencia física directa al STM32
 - **Estado:** Aceptada
-- **Decisión:** no pasa por la trama UART normal; genera un estado de alta prioridad propagado a ROS2 fuera del ciclo normal de la trama.
-- **Justificación:** garantiza que la parada de emergencia no compita en latencia/prioridad con el resto de los datos del protocolo binario.
+- **Decisión:** la parada no viaja por la trama UART: entra como interrupción al STM32 para no competir en latencia con el resto de los datos. Son dos dispositivos: botón NC (PA0), que además corta la alimentación de los motores, y sensor capacitivo TTP223 (PA1). Detalle en `HARDWARE_FIRMWARE.md`.
+- **Pendiente:** cómo el STM32 avisa de la emergencia a los ESP32 y a ROS 2.
 
-### ADR-008 — Firmware ESP32: PlatformIO + framework Arduino
-- **Estado:** Aceptada
-- **Alternativa evaluada:** ESP-IDF puro.
-- **Por qué se descartó:** más control pero desarrollo más lento; PlatformIO+Arduino da mejor balance de velocidad de desarrollo/estructura para un equipo (Sergio/Linda) con experiencia limitada en firmware.
+### ADR-008 — Firmware ESP32: PlatformIO + ESP-IDF
+- **Estado:** Aceptada (revisada)
+- **Antes:** PlatformIO + Arduino, pensando en la poca experiencia en firmware del equipo.
+- **Por qué cambió:** ESP-IDF da acceso directo a los periféricos del ESP32-S3 que se usan (MCPWM para motores, PCNT para encoders, RMT para las WS2812).
 
-### ADR-009 — Reconocimiento facial: SCRFD + ArcFace vía ONNX Runtime
+### ADR-009 — Reconocimiento facial: SCRFD + ArcFace (ONNX Runtime)
 - **Estado:** Aceptada
-- **Alternativa previa:** LBPH.
-- **Por qué se cambió:** LBPH tenía un bug de pipeline multi-usuario incompleto (agregar usuario requería reentrenar). SCRFD+ArcFace soporta agregar usuarios solo agregando su embedding, necesita menos fotos (3-5 vs 200), y es menos sensible a iluminación. Comparte runtime ONNX con VAD/wake word.
+- **Antes:** LBPH, que obligaba a reentrenar para agregar un usuario.
+- **Por qué:** agregar un usuario es solo agregar su embedding (soporta 2+ usuarios), necesita 3-5 fotos en vez de 200, es menos sensible a la iluminación y comparte runtime ONNX con wake word y VAD.
 
-### ADR-010 — SLAM: RTAB-Map (actualizado a 0.21.9+)
+### ADR-010 — SLAM: RTAB-Map 0.21.9+
 - **Estado:** Aceptada
-- **Alternativas evaluadas:** SLAM Toolbox, Cartographer, GMapping.
-- **Por qué se descartaron:** son LiDAR-first, no aptas para RGB-D sin conversión con costo de CPU adicional.
-- **Nota:** confirmado con paper académico 2026 sobre Jazzy; versión 0.21.9 corrige bug real de sincronización de `message_filters`.
+- **Por qué:** soporta RGB-D de forma nativa y tiene soporte activo en Jazzy. La 0.21.9 corrige un bug de sincronización de `message_filters`.
+- **Descartadas:** SLAM Toolbox, Cartographer y GMapping, pensadas para LiDAR.
 
 ### ADR-011 — Navegación: Nav2
 - **Estado:** Aceptada
-- **Nota:** Nav2 usa `BehaviorTree.CPP` internamente, pero es irrelevante para la decisión de framework de BT propio (Capa 5) — se le llama como action server externo; su árbol interno es una caja negra que no se toca.
+- **Nota:** se usa como action server externo. Que use BehaviorTree.CPP por dentro no afecta al BT propio (ADR-014). Los waypoints con nombre salen de Nav2 Waypoint Follower + un YAML nombre→pose.
 
-### ADR-012 — Framework de agencia: Pydantic AI
+### ADR-012 — Agente: Pydantic AI
 - **Estado:** Aceptada
-- **Alternativa evaluada:** LangGraph.
-- **Por qué se descartó:** su fortaleza (grafos de estado complejos) es redundante porque esa complejidad ya vive en el Behavior Tree propio.
-- **Justificación de Pydantic AI:** ligero, agnóstico de proveedor/modelo, tipado fuerte — encaja con mensajes ROS2.
+- **Por qué:** ligero, independiente del proveedor de LLM y con tipado fuerte (encaja con mensajes ROS 2).
+- **Descartada:** LangGraph; su fuerte (grafos de estado) ya lo cubre el Behavior Tree.
 
-### ADR-013 — Proveedor LLM primario: Groq
-- **Estado:** Aceptada, con mitigación de riesgo
-- **Riesgo identificado:** Groq fue adquirida por Nvidia a inicios de 2026, con reducción de personal técnico y catálogo curado (~12 modelos), patrón de deprecación documentado.
-- **Mitigación:** Pydantic AI es agnóstico de proveedor — cambiar proveedor es cambio de configuración, no reescritura de código.
-- **Fallback:** cadena de 3 modelos con la key principal de Groq → 3 modelos con la key secundaria de Groq, suficiente sin depender de un segundo proveedor.
-- **Modelo inicial (actualizado, benchmark real — septiembre 2026):** `Llama 3.3 70B Versatile` (decisión original de este ADR) ya no existe en el catálogo de Groq — confirma en la práctica el riesgo de plataforma señalado arriba. Se hizo benchmark real de alternativas (`scripts/benchmarks/llm/`, resultados crudos en `scripts/benchmarks/llm/results/`) sobre todo el catálogo de chat de Groq y los modelos `:free` de OpenRouter (como red de seguridad adicional evaluada, no solo Groq). OpenRouter se descartó por latencia (2-16s por respuesta en tier gratuito vs <1s en Groq). Cerebras y SambaNova se descartaron antes del benchmark de calidad: su "gratis" es un saldo fijo que se agota (no un tier gratuito perpetuo con límites por tasa). `allam-2-7b` se descartó por mezclar palabras en árabe en las respuestas.
-- **Orden de fallback (3 modelos, misma key):**
-  1. `openai/gpt-oss-120b` — primario. Único sin fallos/respuestas vacías o cortadas en el benchmark de calidad (54 llamadas), mejor consistencia entre repeticiones.
-  2. `openai/gpt-oss-20b` — primer fallback. Buena calidad y el más rápido en tok/s, pero con reliability inferior al 120b (respuestas vacías/cortadas en la prueba sin `reasoning_effort` — resuelto fijando `reasoning_effort="low"`, ver parámetros abajo).
-  3. `qwen/qwen3.8-27b` — último recurso. El más rápido en latencia bruta cuando responde bien, pero el más expuesto a degradación bajo el tier gratuito de Groq: dio 429 por límite de tokens de salida/min (OTPM) en una corrida, y en otra corrida (sin error) tuvo latencias de hasta 18s por congestión de cola (`queue_time`) — el proveedor lo pone en un pool con menos capacidad reservada. Por eso queda como el modelo menos usado en la cadena, no como primario ni secundario.
-  - La misma cadena de 3 modelos se reutiliza para la key secundaria de Groq (no se volvió a benchmarkear con esa key).
-- **Parámetros fijados tras el benchmark (por modelo, no uniformes):**
-  - `max_completion_tokens=300` para los 3 — evita que `qwen` pida más tokens de los que su límite de tier gratuito permite (1000 OTPM) y refuerza el límite de "máx. 3 frases" que ya pide el system prompt de Koda para voz.
-  - `reasoning_effort="low"` solo en los `gpt-oss-*` — corrige respuestas vacías/cortadas del `gpt-oss-20b` causadas por gastar el budget de tokens en razonamiento oculto. A `qwen` le empeoró la latencia con este parámetro puesto, así que se le deja sin él.
-  - `temperature=0.7`, `top_p=0.80` solo en `qwen` (en vez de su default) — decisión de ajuste manual de Andrés. Los `gpt-oss-*` se dejan en su default (1.0).
-  - `service_tier`: se probaron los 4 valores contra la cuenta real; solo `on_demand` está disponible en este tier gratuito (ya es el default) — no aplica como parámetro de ajuste.
-
-### ADR-014 — Framework de Behavior Tree: py_trees + py_trees_ros
+### ADR-013 — LLM: Groq con fallback de 3 modelos × 2 keys
 - **Estado:** Aceptada
-- **Alternativa evaluada:** BehaviorTree.CPP.
-- **Por qué se descartó:** no aporta ventaja real dado que no se toca el árbol interno de Nav2; py_trees es Python nativo, mismo lenguaje que el agente y el resto del sistema — más fácil de leer/depurar/explicar.
+- **Por qué:** el más rápido evaluado (<1 s por respuesta) con tier gratuito suficiente.
+- **Riesgo:** el catálogo cambia seguido (Llama 3.3 70B, la elección original, ya salió). Se mitiga porque Pydantic AI permite cambiar de proveedor por configuración.
+- **Alternativas descartadas:** OpenRouter (2-16 s por respuesta en tier gratuito); Cerebras y SambaNova (su "gratis" es un saldo que se agota, no un tier perpetuo).
+- **Orden de fallback** (benchmark de septiembre 2026, detalle en `scripts/benchmarks/README.md`). Se repite igual con la key secundaria:
+  1. `openai/gpt-oss-120b` — primario: el único sin respuestas vacías o cortadas.
+  2. `openai/gpt-oss-20b` — el más rápido en tok/s, algo menos confiable.
+  3. `qwen/qwen3.8-27b` — último recurso: rápido, pero sufre límites y colas del tier gratuito.
+- **Parámetros por modelo:**
+  - `max_completion_tokens=300` en los 3 (respeta el límite de qwen y la regla de "máx. 3 frases" del prompt de voz).
+  - `reasoning_effort="low"` solo en los `gpt-oss-*` (evita respuestas vacías del 20b; a qwen le empeoraba la latencia).
+  - `temperature=0.7`, `top_p=0.80` solo en qwen (ajuste manual); los `gpt-oss-*` en su default.
 
-### ADR-015 — Patrón de integración agente↔BT: agente propone, BT dispone
+### ADR-014 — Behavior Tree: py_trees + py_trees_ros
 - **Estado:** Aceptada
-- **Decisión:** el agente propone intención vía tool calls; el BT ejecuta, con ramas de mayor prioridad (emergencia, obstáculos) que pueden interrumpir sin consultar al agente.
-- **Justificación:** operacionaliza la separación reactiva/deliberativa; validado por patrón académico ROS-LLM.
+- **Por qué:** Python, el mismo lenguaje que el resto del sistema; más fácil de leer y depurar.
+- **Descartada:** BehaviorTree.CPP; no aporta nada si no se toca el árbol interno de Nav2.
+
+### ADR-015 — El agente propone, el árbol dispone
+- **Estado:** Aceptada
+- **Decisión:** el agente propone intenciones vía tool calls; el BT las ejecuta, y sus ramas de mayor prioridad (emergencia, obstáculos) pueden interrumpir sin consultar al agente.
+- **Por qué:** separa planificación (LLM) de ejecución (controlador determinista), un patrón común en robótica con LLM.
 
 ### ADR-016 — Wake word: openWakeWord
-- **Estado:** Aceptada
-- **Alternativas evaluadas:** Vosk (usado previamente como wake word), Porcupine.
-- **Por qué se descartaron:** Porcupine ya era poco práctico por su límite de "1 dispositivo activo" en tier gratuito, y quedó **eliminado por completo** como opción tras el cierre total del plan gratuito de Picovoice (actualización agosto 2026). openWakeWord corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial) y es más preciso en benchmarks propios con mínimo consumo de CPU.
+- **Estado:** Aceptada; falta validarla en el hardware real y entrenar un modelo propio para "Koda".
+- **Por qué:** corre sobre ONNX Runtime (compartido con VAD y reconocimiento facial) con poco CPU.
+- **Descartadas:** Vosk como wake word (lo que se usaba antes) y Porcupine (Picovoice cerró su plan gratuito en agosto 2026).
 
-### ADR-017 — Comandos offline: Vosk acotado solo a emergencia
-- **Estado:** Aceptada (revisión de decisión previa)
-- **Decisión previa:** comandos rígidos de propósito general vía Vosk.
-- **Por qué se revisó:** generaban falsos positivos y quitaban flexibilidad al robot (probado en el sistema anterior). Ahora Vosk se usa exclusivamente para "detente", "ayuda", "emergencia", "reanudar"; todo lo demás pasa por el agente con lenguaje libre.
-- **Alternativa a evaluar a futuro:** sherpa-onnx (consolidaría STT+TTS+VAD+wake word bajo un solo runtime ONNX).
+### ADR-017 — Comandos offline: Vosk, solo para emergencia
+- **Estado:** Provisional; se confirma o se cambia con el benchmark de STT offline (`ROBOT_VOZ.md`).
+- **Decisión:** Vosk solo reconoce "detente", "ayuda", "emergencia" y "reanudar"; todo lo demás va al agente.
+- **Por qué:** los comandos rígidos de propósito general del sistema anterior daban falsos positivos y quitaban flexibilidad.
+- **En benchmark:** sherpa-onnx (juntaría STT, TTS, VAD y wake word en un solo runtime ONNX).
 
 ### ADR-018 — VAD: TEN VAD
-- **Estado:** Aceptada
-- **Alternativa previa:** Silero VAD.
-- **Alternativas evaluadas:** WebRTC VAD, Cobra VAD (Picovoice).
-- **Por qué se cambió/descartaron:** TEN VAD tiene ~32% menos consumo de CPU que Silero y menor latencia de corte de habla. Cobra VAD ya era problemático por ser comercial (mismo problema de licenciamiento que Porcupine), y quedó **eliminado por completo** como opción tras el cierre total del plan gratuito de Picovoice (actualización agosto 2026).
+- **Estado:** Provisional; se confirma o se cambia con el benchmark de VAD (`ROBOT_VOZ.md`).
+- **Por qué:** reporta ~32% menos CPU que Silero y corta el habla más rápido, clave para que la conversación se sienta natural.
+- **En benchmark:** WebRTC VAD y Silero. Cobra VAD (Picovoice) quedó descartado.
 
 ### ADR-019 — STT: Groq Whisper large-v3-turbo
-- **Estado:** Aceptada (sin cambio respecto al sistema anterior)
-- **Justificación:** confirmado como opción cloud más rápida en 2026 (~216x tiempo real), más barato que alternativas.
+- **Estado:** Aceptada (igual que en el sistema anterior)
+- **Por qué:** rápido y barato, ya probado, y del mismo proveedor que el LLM.
 
-### ADR-020 — TTS: Azure `es-PE-CamilaNeural` (primario) + Kokoro (candidato)
-- **Estado:** Aceptada como primario; Kokoro en evaluación
-- **Nota:** Kokoro (82M parámetros, Apache 2.0, 100% local en CPU) se evalúa solo como alternativa de benchmark de calidad/latencia — no busca independencia de red, ya que el robot depende de internet para STT y LLM de todas formas.
+### ADR-020 — TTS: Azure `es-PE-CamilaNeural` (+ Kokoro como candidato)
+- **Estado:** Azure aceptada; Kokoro en evaluación.
+- **Nota:** Kokoro (82M parámetros, local en CPU, soporta español) solo se compara en calidad y latencia. No se busca independencia de red: el robot ya depende de internet para STT y LLM.
 
 ### ADR-021 — Voz-a-voz nativa: descartada
 - **Estado:** Rechazada
-- **Alternativas evaluadas:** OpenAI Realtime API, Gemini Live, Amazon Nova Sonic.
-- **Por qué se descartaron:** sin transcripción limpia (debilita el validador ético estructural), atan a un solo proveedor (rompe la resiliencia del fallback de Groq), modelo económico distinto al diseñado, y son cajas negras que contradicen el principio de transparencia/control del proyecto. Se mantiene arquitectura en cascada STT→LLM→TTS.
+- **Evaluadas:** OpenAI Realtime API, Gemini Live, Amazon Nova Sonic.
+- **Por qué no:** no dan una transcripción limpia (debilita el validador ético), atan a un solo proveedor (rompe el fallback de Groq) y son cajas negras. Se mantiene la cascada STT → LLM → TTS.
 
-### ADR-022 — HMI: NiceGUI sobre Chromium Kiosk
+### ADR-022 — HMI: NiceGUI en Chromium (modo kiosco)
 - **Estado:** Aceptada
-- **Alternativa evaluada:** Godot Engine.
-- **Por qué se descartó:** integración con ROS2 experimental/comunidad, requeriría compilar módulo C++ propio dentro del engine — riesgo frágil similar al driver del Kinect, no apto para el deadline.
-- **Justificación de NiceGUI:** construido sobre FastAPI+WebSockets (misma base que el sistema anterior), interfaz en Python puro — unifica lenguaje con agente/BT/nodos ROS2.
+- **Por qué:** interfaz en Python puro sobre FastAPI + WebSockets (la misma base del sistema anterior) y permite insertar HTML/JS propio, como la cara animada.
+- **Descartada:** Godot; su integración con ROS 2 es experimental y exigiría compilar un módulo C++.
 
-### ADR-023 — Botón de parada en HMI: descartado
-- **Estado:** Rechazada (la funcionalidad, no el HMI)
-- **Justificación:** sin pantalla táctil, mover el mouse hasta el botón no es práctico; se mantiene solo el botón físico.
-
-### ADR-024 — Editor/IDE: VSCode sobre PyCharm
-- **Estado:** Aceptada
-- **Justificación:** proyecto multi-lenguaje (Python + C/C++ firmware + YAML + Markdown), terreno donde VSCode tiene ventaja documentada sobre PyCharm en comparativas 2026. Extensión PlatformIO para firmware ESP32 en el mismo editor.
-
-### ADR-025 — Estructura del repositorio: un solo repo (monorepo)
-- **Estado:** Aceptada
-- **Justificación:** desarrollo mayormente secuencial liderado por Andrés; múltiples repos añadirían fricción de coordinación sin beneficio real dado el tamaño del equipo.
-
-### ADR-026 — Exploración autónoma de frontera (mapeo): descartada
+### ADR-023 — Botón de parada en el HMI: descartado
 - **Estado:** Rechazada
-- **Decisión:** modo de mapeo manual/asistido (mover el robot mientras RTAB-Map mapea, guardar desde HMI).
-- **Justificación:** exploración autónoma de frontera es complejidad/riesgo desproporcionado para el alcance de prototipo.
+- **Por qué:** sin pantalla táctil, llevar el mouse hasta el botón no es práctico. Quedan el botón NC, el TTP223 y el comando de voz.
 
-### ADR-027 — Recuperación proactiva de memoria entre sesiones: fuera de alcance
-- **Estado:** Diferida (bonus post-defensa)
-- **Justificación:** filtro de alcance de prototipo — se prioriza memoria de sesión + registro estructurado en BD.
-
-### ADR-028 — Especificación completa de la trama UART STM32↔ESP32
+### ADR-024 — Editor: VSCode
 - **Estado:** Aceptada
-- **Contexto:** ADR-006 definió el formato general (trama binaria fija + CRC8) pero dejó la especificación de detalle pendiente para Fase 2 del roadmap.
-- **Decisión:** Dos líneas UART físicas dedicadas (STM32↔ESP32 Movilidad, STM32↔ESP32 Médica), no bus compartido con direccionamiento. Framing: `[START 0xAA][MSG_TYPE 1B][LEN 1B][PAYLOAD][CRC8 1B][END 0x55]`, CRC8 Maxim/Dallas (polinomio 0x31) calculado sobre `MSG_TYPE+LEN+PAYLOAD`, little-endian, baudrate 115200.
-- **Alternativa evaluada:** Bus UART compartido con byte de dirección para ambos ESP32.
-- **Por qué se descartó:** Con USARTs libres de sobra en el STM32F411, líneas dedicadas evitan el byte de dirección, evitan arbitraje de bus, y aíslan fallos — ruido o desconexión en el link de Movilidad no puede corromper el link de Médica. Costo adicional de pines es nulo dado el margen disponible.
-- **Mensajes definidos — link Movilidad:** `CMD_VELOCITY` (0x01, STM32→ESP32, 20Hz, VL/VR int16 mm/s) · `TELEMETRY` (0x81, ESP32→STM32, 50Hz, RPM izq/der + 5 distancias ultrasonido + bitmask de fallo por sensor + voltage/current del monitoreo de energía).
-- **Mensajes definidos — link Médica:** `CMD_DISPENSE` (0x02) · `CMD_MEASURE_VITALS` (0x03) · `CMD_VITALS_ARM` (0x04) · `RESP_DISPENSE` (0x82, incluye resultado consolidado de verificación ESP32-CAM) · `RESP_VITALS` (0x83).
-- **Decisión de telemetría de velocidad:** RPM ya calculado en el ESP32 Movilidad (no ticks crudos), reutilizando el cálculo que el ESP32 ya hace para su lazo de control PID — evita carga adicional de cómputo en el i3 del Dell.
-- **Ubicación del sensor de energía (INA3221 + divisor de voltaje):** lectura directa desde el ESP32 Movilidad, reportado dentro de `TELEMETRY` — no requiere link ni trama propia.
-- **Watchdog de seguridad:** si el ESP32 Movilidad no recibe `CMD_VELOCITY` en 500 ms, frena motores por su cuenta, independiente del botón físico de emergencia (ADR-007).
-- **Especificación completa (tablas de payload byte a byte):** ver `HARDWARE_FIRMWARE.md`, sección "Capa 2 — Comunicación PC ↔ Microcontroladores".
+- **Por qué:** un solo editor para Python, C/C++, YAML y Markdown, con PlatformIO para los ESP32.
 
-### ADR-030 — Terminología: `usuarios` en vez de `pacientes`
+### ADR-025 — Un solo repositorio
 - **Estado:** Aceptada
-- **Contexto:** El esquema y las herramientas del agente usaban originalmente `pacientes`/`patient_id`, heredado de la idea inicial de un dispositivo médico.
-- **Decisión:** Renombrar a `usuarios`/`usuario_id` en toda la base de datos, las tools del agente y la documentación.
-- **Justificación:** Koda es un robot doméstico de acompañamiento y cuidado, no un dispositivo médico clínico — "usuarios" refleja correctamente el alcance del producto y evita expectativas de rigor clínico que el proyecto no busca cumplir.
+- **Por qué:** el desarrollo es mayormente secuencial y el equipo es pequeño; varios repos solo agregarían coordinación.
 
-### ADR-031 — Diseño de `horarios_medicacion`: columna discriminadora `tipo_horario`
+### ADR-026 — Mapeo manual/asistido (sin exploración autónoma)
 - **Estado:** Aceptada
-- **Contexto:** El horario de un medicamento puede definirse de 3 formas distintas (diario, días específicos de la semana, o cada X horas desde una hora de inicio).
-- **Alternativa evaluada:** Una tabla separada por modo de horario (ej. `horarios_diarios`, `horarios_semanales`, `horarios_intervalo`).
-- **Decisión:** Una sola tabla `horarios_medicacion` con columna discriminadora `tipo_horario` (`'diario'` | `'dias_semana'` | `'intervalo'`) y columnas opcionales según el modo (`hora`, `dias_semana`, `intervalo_horas`, `hora_inicio`).
-- **Por qué se descartó la alternativa:** tres tablas separadas complican el cálculo de "próxima dosis" (requeriría consultar y combinar 3 tablas) y la relación N-a-N usuario↔medicamento se duplicaría en cada una, sin beneficio real para el volumen de datos de un prototipo.
-- **Nota:** el cálculo de "próxima dosis" (`get_next_dose`) se resuelve en código según el valor de `tipo_horario`, nunca en el LLM — mismo principio que evita alucinaciones temporales (ver `ROBOT_COGNICION.md`). Un usuario+medicamento tiene un solo patrón de horario vigente a la vez.
-- **Detalle del esquema completo:** ver `database/README.md`.
+- **Decisión:** el robot se mueve a mano (control remoto) mientras RTAB-Map mapea, y el mapa se guarda desde el HMI. La exploración autónoma de frontera es demasiado riesgo para un prototipo.
 
-### ADR-032 — Flujo de desarrollo Asus↔Dell: `git pull`, sin Remote-SSH
-- **Estado:** Aceptada (revisión de decisión previa)
-- **Contexto:** El roadmap original de Fase 0 contemplaba configurar VSCode Remote-SSH entre el Asus y el Dell para editar/depurar directo sobre el Dell desde el Asus.
-- **Decisión:** Se descarta Remote-SSH. Cada máquina tiene su propio `venv --system-site-packages`. El desarrollo y la configuración ocurren en el Asus; el Dell se usa vía `git pull` únicamente para pruebas que dependen de su hardware real (micrófono, latencia) y, más adelante, para integración final y la demo.
-- **Por qué se descartó:** Remote-SSH añade una capa de configuración y dependencia de red sin necesidad real — ambas máquinas corren el mismo SO/misma versión de ROS2, así que un `venv` propio en cada una más `git pull` ya da paridad de entorno sin la fragilidad de mantener una sesión SSH persistente entre ellas.
+### ADR-027 — Memoria entre sesiones: fuera de alcance
+- **Estado:** Diferida (bonus después de la sustentación)
+- **Decisión:** solo memoria de la sesión + registro estructurado en la BD.
 
-### ADR-033 — Localización de fuente sonora con el array del Kinect
-- **Estado:** Diferida (bonus)
-- **Contexto:** El array de micrófonos del Kinect V2 (4 canales, ver ADR de micrófono en `ROBOT_VOZ.md`/`HARDWARE_FIRMWARE.md`) permite en principio estimar de dónde viene la voz del usuario, para que el robot gire sutilmente hacia él antes de responder. No es un requisito funcional del proyecto, es una feature opcional/bonus.
-- **Decisión:** Si se implementa, usar **GCC-PHAT** entre los canales extremos del array (canales 1 y 4) para estimar **solo azimut** (ángulo horizontal), no elevación ni distancia. El cálculo se restringe al segmento de audio que dispara wake word/VAD, usando la mediana de varias ventanas, y el robot gira solo si el ángulo estimado supera ~20°, con giro limitado a la mitad del ángulo (ver diseño tentativo en `ROBOT_VOZ.md`).
-- **Resultados preliminares (prueba en el Asus, sin validar formalmente):** separación entre canales extremos asumida `D ≈ 0.22 m` (estimada, no verificada con medición física). Con esa `D`, GCC-PHAT dio: centro ≈ -1°, izquierda ≈ -40° y -43° (dos ventanas distintas). Lado derecho **no validado** — el hablante quedó casi al centro en esa prueba y dio 0.7° en vez de un ángulo claramente positivo. Script de referencia: `scripts/benchmarks/kinect_array.py`.
-- **Limitaciones conocidas:**
-  - Ambigüedad adelante/atrás inherente a un array lineal (GCC-PHAT con 2 micrófonos no distingue si la fuente está delante o detrás del eje del array).
-  - Sensible a ruido y reverberación del ambiente real (la prueba preliminar se hizo con impresoras 3D de fondo, no en silencio).
-  - La distancia `D` entre micrófonos usada en el cálculo es una estimación, no una medición verificada — afecta directamente la precisión del ángulo.
-  - Lado derecho del array sin validar todavía (ver resultados preliminares arriba).
-  - Pendiente re-validar todo dentro de la carcasa cerrada (Fase 3) — la acústica y la posición relativa de los micrófonos respecto al usuario pueden cambiar.
-- **Alternativa no evaluada:** beamforming completo (más preciso pero mucho más costoso de implementar/afinar para una feature bonus) — no se investigó, se optó directamente por el enfoque más simple (GCC-PHAT de 2 canales, solo azimut) dado el alcance de prototipo.
+### ADR-028 — Arquitectura del enlace UART STM32↔ESP32
+- **Estado:** Aceptada la arquitectura; los mensajes siguen en borrador (`HARDWARE_FIRMWARE.md`).
+- **Decisión:**
+  - Dos líneas UART dedicadas (una por ESP32), sin bus compartido.
+  - Framing común: `[0xAA][MSG_TYPE][LEN][PAYLOAD][CRC8][0x55]`, con CRC8 sobre `MSG_TYPE+LEN+PAYLOAD`.
+  - Watchdog en el ESP32 Movilidad: si deja de recibir comandos de velocidad durante un tiempo límite (a fijar en firmware), frena solo.
+- **Descartada:** un bus compartido con byte de dirección. Al STM32F411 le sobran USARTs, y con líneas separadas un fallo en un link no afecta al otro.
 
----
+### ADR-030 — "Usuarios" en vez de "pacientes"
+- **Estado:** Aceptada
+- **Por qué:** Koda es un robot doméstico de acompañamiento, no un dispositivo médico; "usuarios" no promete un rigor clínico que el proyecto no busca. Aplica a BD, tools y documentación.
 
-## Información faltante / pendiente de revisión
+### ADR-031 — Horarios de medicación en una sola tabla con `tipo_horario`
+- **Estado:** Aceptada
+- **Decisión:** una tabla `horarios_medicacion` con discriminador `tipo_horario` (`'diario'`, `'dias_semana'`, `'intervalo'`) y columnas opcionales según el modo.
+- **Descartada:** una tabla por modo, que obligaría a combinar 3 tablas para calcular la próxima dosis y duplicaría la relación usuario↔medicamento.
+- **Nota:** la próxima dosis se calcula en código, nunca en el LLM. Esquema completo en `database/README.md`.
 
-- **Fechas de decisión** de cada ADR (el documento maestro no registra cuándo se tomó cada decisión, solo que fue "en la sesión de reformulación de agosto 2026") — si se quiere trazabilidad real tipo ADR, convendría fechar cada una.
-- **Autores/participantes por decisión:** no se distingue qué decisiones fueron discutidas con todo el equipo vs. solo Andrés+Claude.
-- Este archivo es una **compilación derivada** del documento maestro, no decisiones nuevas — al completar los vacíos identificados en los demás archivos (`ROBOT_COGNICION.md`, etc.), probablemente surgirán ADRs nuevos (ej. diseño del árbol py_trees) que deben añadirse aquí. **ADR-029 queda reservado** para esa decisión pendiente (árbol raíz de py_trees) cuando se cierre; ADR-030 y ADR-031 ya documentan decisiones de esquema de base de datos tomadas antes de cerrar esa.
+### ADR-032 — Asus ↔ Dell por `git pull`, sin Remote-SSH
+- **Estado:** Aceptada (reemplaza el plan inicial de Remote-SSH)
+- **Decisión:** se desarrolla en el Asus; el Dell hace `git pull` solo para probar lo que depende de su hardware (micrófono, latencia) y para la integración final. Cada máquina tiene su propio `venv`.
+- **Por qué:** ambas corren el mismo SO y ROS 2, así que no hace falta mantener una sesión SSH.
+
+### ADR-033 — Localizar de dónde viene la voz (bonus)
+- **Estado:** Diferida
+- **Decisión:** si se hace, GCC-PHAT entre los micrófonos extremos del Kinect, solo para el ángulo horizontal. Las reglas de cuándo y cuánto girar se definen al implementar (`ROBOT_VOZ.md`).
+- **Limitaciones:** no distingue adelante de atrás; es sensible a ruido y eco; la separación entre micrófonos está estimada, no medida, y el lado derecho no está validado.
+- **Pruebas preliminares:** `scripts/benchmarks/README.md`.
+
+### ADR-034 — Kinect V2: SLAM + micrófono
+- **Estado:** Aceptada
+- **Decisión:** el Kinect hace SLAM (RGB-D) y es el micrófono del robot. No detecta personas: eso lo hace solo la cámara Dell.
+- **Consecuencias:** como escucha todo el tiempo, queda encendido casi siempre, y su consumo en el riel de 12V cuenta para la autonomía. El audio se captura por ALSA sin `libfreenect2`, pero necesita los 12V. Falta validarlo dentro de la carcasa y a 2-3 m.

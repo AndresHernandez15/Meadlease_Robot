@@ -1,38 +1,41 @@
 # MEADLEASE — MOVILIDAD Y NAVEGACIÓN
 
-> **Corresponde a:** `robot_bringup`
+> **Paquete:** `robot_bringup` (Módulo 3)
 
----
+## Funciones
 
-## Objetivos funcionales (Módulo 3)
-
-| Función | Alcance | Demo |
+| Función | Alcance | En la demo |
 |---|---|---|
-| Navegación autónoma A→B | Esencial, con waypoints con nombre (vía Nav2 Waypoint Follower) | En vivo — mayor impacto visual |
-| Búsqueda activa del usuario | Recorrido de waypoints ordenados por cercanía, apoyada en percepción continua (`ROBOT_PERCEPCION.md`) — sin lógica de detección propia duplicada. Flujo: navega a siguiente waypoint no visitado → percepción detecta persona (en background) → si detecta, se acerca y reconoce → si es el usuario, atiende tarea; si no, continúa → si se acaban waypoints sin encontrarlo, notifica (Telegram) y regresa a base. **Interrumpible por voz:** si durante la búsqueda el usuario llama al robot (ej. "¡Aquí estoy!"), el agente lo reconoce, detiene el recorrido a waypoints y dispara la búsqueda de persona en la posición actual en lugar de continuar al siguiente waypoint — refuerza el objetivo de que el robot se sienta atento/vivo, no en piloto automático ciego | Video (mejor que en vivo por tiempo), con el momento de interrupción por voz como posible instante en vivo |
-| Aproximación social | Velocidad/distancia cómodas — reutiliza comportamiento APPROACHING | En vivo, parte natural del movimiento |
-| Seguimiento (follow-me) | **Opcional/bonus** — construir solo si el tiempo alcanza, es la función más costosa de toda la lista (tracking continuo + control de velocidad en lazo cerrado) | Demo si se construye |
-| Regreso a base/carga | Esencial para operación, bajo perfil en demo | Background |
-| Parada de emergencia | No negociable — resuelta en hardware + reflejo de capa reactiva (ver `ROBOT_COGNICION.md` Módulo 5C) | Podría mostrarse en vivo |
-| Bloqueo de movimiento durante dispensación | Esencial | Implícito |
-| Mapa interactivo tipo Roomba en HMI | Mostrar occupancy grid de Nav2, clic para definir waypoints y estación de carga (ver `ROBOT_HMI.md`) | Construcción/config, no necesariamente demo en vivo |
-| Modo de mapeo | **Manual/asistido** (mover el robot mientras RTAB-Map mapea, guardar desde HMI) — exploración autónoma de frontera **descartada** por complejidad/riesgo desproporcionado para el alcance de prototipo | Config previa a la demo |
-| Control remoto vía QR | Página adicional del mismo servidor NiceGUI (`/control`), QR codifica la URL, mismo WiFi que comparte el celular durante la demo. Útil para mover el robot manualmente durante mapeo | Herramienta de operación, no de demo en vivo |
+| Ir de A a B | Esencial, con waypoints con nombre | En vivo, lo de mayor impacto visual |
+| Buscar al usuario | Ver abajo | En video; la interrupción por voz puede ir en vivo |
+| Acercarse a la persona | Velocidad y distancia cómodas (acercamiento validado en el sistema anterior, por reimplementar) | En vivo |
+| Seguir a la persona (follow-me) | Bonus; es lo más costoso de toda la lista | Solo si se construye |
+| Volver a la base | Esencial. Va a un punto "home" donde una persona lo conecta al cargador (`HARDWARE_FIRMWARE.md`) | En background |
+| Parada de emergencia | Hardware + reflejo del árbol (`ROBOT_COGNICION.md`) | Puede mostrarse en vivo |
+| No moverse mientras dispensa | Esencial | Implícito |
+| Compensar pendientes | Con el MPU6050 se ajusta la potencia al subir o bajar (dónde vive: ver pendientes) | Implícito |
+| Luces traseras de giro y freno | 2 placas WS2812 en el ESP32 Movilidad (quién las comanda: ver pendientes) | Siempre visibles |
+| Mapa tipo Roomba en el HMI | Ver el mapa y definir waypoints y la base con un clic (`ROBOT_HMI.md`) | Configuración |
+| Mapeo | Manual: se mueve el robot mientras RTAB-Map mapea y se guarda desde el HMI (ADR-026) | Antes de la demo |
+| Control remoto por QR | Página de NiceGUI que se abre desde el celular en la misma red. Sirve para manejarlo al mapear | Herramienta, no demo |
 
-## Decisiones técnicas (Capa 4 — SLAM y Navegación)
+**Búsqueda del usuario:** recorre los waypoints del más cercano al más lejano mientras percepción mira en background. Si ve a alguien, se acerca y lo reconoce: si es el usuario, atiende la tarea; si no, sigue. Si se acaban los waypoints, avisa por Telegram y vuelve a la base. Si durante la búsqueda el usuario lo llama ("¡aquí estoy!"), deja el recorrido y lo busca ahí mismo, para que se sienta atento y no en piloto automático.
 
-| Función | Decisión | Justificación |
+## Decisiones
+
+| Qué | Decisión | ADR |
 |---|---|---|
-| SLAM | **RTAB-Map**, actualizar a 0.21.9+ | Confirmado con paper académico 2026 sobre Jazzy — alternativas (SLAM Toolbox, Cartographer, GMapping) son LiDAR-first, no aptas para RGB-D sin conversión con costo de CPU. Versión 0.21.9 corrige bug real de sincronización `message_filters` |
-| Navegación | **Nav2**, sin alternativa real mejor | Nav2 usa `BehaviorTree.CPP` internamente, pero es irrelevante para nuestra decisión de framework de BT propio — se le llama como action server externo, su árbol interno es una caja negra |
-| Waypoints con nombre | **Nav2 Waypoint Follower + YAML** nombre→pose | Resuelto con herramienta nativa, no requiere código propio |
+| SLAM | RTAB-Map 0.21.9+ con el Kinect (RGB-D) | 010, 034 |
+| Navegación | Nav2 como action server externo | 011 |
+| Waypoints | Nav2 Waypoint Follower + YAML nombre→pose | 011 |
+| Cinemática | Diferencial: 2 motores traseros + rueda loca delantera (`HARDWARE_FIRMWARE.md`) | — |
 
----
+## Pendientes
 
-## Información faltante / pendiente de revisión
-
-- **Dimensiones y peso del chasis** — la cinemática ya está definida (tracción diferencial, 2 motores traseros + rueda loca delantera, ver `HARDWARE_FIRMWARE.md`); falta el dato físico de dimensiones/peso para completar la configuración del plugin de controlador diferencial de Nav2.
-- **Layout y cantidad de waypoints** para el espacio real de la demo — no definidos aún.
-- **Dimensiones del espacio de prueba/demo** (relevante para tiempos de navegación en el guion de la Fase 5 del roadmap).
-- **Parámetros concretos de Nav2** (velocidades máximas, radios de tolerancia, perfil del costmap) — no especificados, quedan para configuración durante Fase 1/3.
-- **Definición operativa de "seguimiento (follow-me)"** si se llega a construir: no hay especificación técnica más allá de "tracking continuo + control de velocidad en lazo cerrado".
+- **Compensación por pendiente:** ¿en el PID del ESP32 Movilidad (sin tocar el protocolo) o en ROS 2 (habría que enviar la inclinación por la trama)?
+- **Luces de giro y freno:** ¿el ESP32 las deduce de las velocidades que recibe o las comanda ROS 2/Nav2?
+- **Dimensiones y peso del chasis**, necesarios para configurar el controlador diferencial de Nav2.
+- **La rueda loca se atasca en las juntas del piso:** problema mecánico sin solución todavía.
+- **Espacio de la demo:** tamaño, distribución y cantidad de waypoints (afecta los tiempos del guion, Fase 5).
+- **Parámetros de Nav2:** velocidades máximas, tolerancias, costmap (Fase 1/3).
+- **Follow-me**, si se construye: falta especificarlo.

@@ -3,7 +3,7 @@ que quedan en carrera para el orden de fallback (allam-2-7b descartado: metía
 palabras en árabe).
 
 OpenRouter (free) queda descartado por latencia: 2-16s por respuesta vs ~0.4s
-de Groq en la prueba de validación (ver probe_models.py). Este script no se
+de Groq en la prueba de validación previa. Este script no se
 ejecuta automáticamente — se corre manualmente para poder ver el progreso en
 vivo en la terminal.
 

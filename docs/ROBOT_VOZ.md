@@ -1,64 +1,58 @@
 # MEADLEASE — VOZ E INTERACCIÓN CONVERSACIONAL
 
-> **Corresponde a:** `robot_voice`
+> **Paquete:** `robot_voice` (Módulo 4)
 
+## Funciones
 
----
-
-## Objetivos funcionales (Módulo 4 — Interacción Conversacional)
-
-| Función | Alcance | Demo |
+| Función | Alcance | En la demo |
 |---|---|---|
-| Conversación natural en español | Esencial, lenguaje libre | En vivo — corazón de la demo |
-| Comandos offline críticos | **Acotados solo a emergencia** ("detente", "ayuda", "emergencia") + reanudación ("reanudar") — decisión revisada: comandos rígidos de propósito general generaban falsos positivos y quitaban flexibilidad; todo lo demás pasa por el agente con lenguaje libre | Red de seguridad, no exhibición directa |
-| Diálogo con memoria de turno | Esencial (ver `ROBOT_COGNICION.md`) | En vivo |
-| Iniciativa conversacional | Ligada a disparadores del agente (ver `ROBOT_COGNICION.md`) | En vivo, momento clave |
-| Consulta de salud/medicación con datos reales | Esencial | En vivo |
-| Información general de salud | Con límites éticos (validador estructural, ver `ROBOT_COGNICION.md`) | En vivo si surge |
-| Escalación a humano | **Vía bot de Telegram (real, ya funcional)** — el robot confirma verbalmente el envío | En vivo, notificación real llega al celular del presentador |
-| Expresividad emocional coherente con HMI | Esencial | Constante |
-| Filler / respuesta mientras procesa | Streaming de LLM a TTS frase por frase (mayor impacto real en latencia) + banco de frases cortas pre-escritas/pre-sintetizadas para cuando el agente invoca una herramienta que toma tiempo real (navegar, dispensar, medir) | Transversal |
-| Localización de la fuente sonora (giro hacia el hablante) | **Opcional/bonus.** Solo azimut, aproximada — el robot gira sutilmente hacia el hablante antes de responder. No esencial para la demo | Bonus, si el tiempo alcanza |
+| Conversación natural en español | Esencial, lenguaje libre, con memoria de turno | En vivo, el corazón de la demo |
+| Comandos offline | Solo "detente", "ayuda", "emergencia" y "reanudar" (ADR-017) | Red de seguridad |
+| Iniciativa conversacional | Según los disparadores del agente (`ROBOT_COGNICION.md`) | En vivo, momento clave |
+| Consultas de salud y medicación | Con datos reales de la BD y los límites del validador ético | En vivo |
+| Escalación a humano | Telegram; el robot confirma en voz alta que avisó | En vivo, llega al celular del presentador |
+| Expresividad | Coherente con la cara del HMI | Siempre |
+| Respuesta mientras procesa | Ver "Decisiones" | Transversal |
+| Girar hacia quien habla | Bonus, solo ángulo horizontal (ADR-033) | Si alcanza el tiempo |
 
-## Decisiones técnicas (Capa 6)
+## Decisiones
 
-| Componente | Decisión | Justificación |
+| Qué | Decisión | ADR |
 |---|---|---|
-| Wake word | **openWakeWord** (reemplaza Vosk-como-wake-word de decisión previa, y a Porcupine original) | Corre sobre ONNX Runtime (comparte runtime con VAD/reconocimiento facial), más preciso que Porcupine en benchmarks propios, mínimo CPU. Porcupine queda **eliminado por completo** de cualquier opción o benchmark: Picovoice eliminó su plan gratuito, no solo el límite de "1 dispositivo activo" que ya lo hacía poco práctico |
-| Comandos offline | **Vosk, acotado exclusivamente a comandos de emergencia y reanudación** ("detente", "ayuda", "emergencia", "reanudar") | Decisión revisada: comandos rígidos de propósito general generaban falsos positivos y quitaban flexibilidad al robot (probado en sistema anterior). Todo lo demás pasa por el agente con lenguaje libre. "Reanudar" libera el reflejo de parada del Behavior Tree (ver `ROBOT_COGNICION.md`, Módulo 5C). Alternativa a evaluar: **sherpa-onnx** (consolidaría STT+TTS+VAD+wake word bajo un solo runtime ONNX) |
-| VAD | **TEN VAD** (reemplaza recomendación inicial de Silero VAD) | Mayor precisión, ~32% menos CPU que Silero, latencia de corte de habla mucho menor (crítico para naturalidad conversacional). Cobra VAD (Picovoice) queda **eliminado por completo** de cualquier opción o benchmark, por el mismo motivo que Porcupine — Picovoice ya no tiene plan gratuito |
-| STT | **Groq Whisper large-v3-turbo**, sin cambio | Confirmado como opción cloud más rápida en 2026 (~216x tiempo real, más barato que alternativas) |
-| TTS | **Azure `es-PE-CamilaNeural`** (primario, probado) + **Kokoro TTS** (candidato a validar) | Kokoro: 82M parámetros, Apache 2.0, corre 100% local en CPU, soporta español. Se evalúa únicamente como alternativa a probar en el benchmark de TTS (calidad/latencia en el i3) — **no** se busca independencia de red con esta prueba: el robot es dependiente de conexión a internet para su operación conversacional normal (STT y LLM en la nube), y esa dependencia ya está contemplada como limitación aceptada del proyecto. Pendiente de benchmark real en el i3 |
-| Filler / latencia percibida | Streaming LLM→TTS frase por frase (mayor impacto real) + banco de frases cortas pre-escritas para llamadas a herramientas que toman tiempo real (navegar, dispensar, medir) | Técnica documentada como estándar de producción en agentes de voz 2026 |
-| Backchanneling ("mju", "ajá") | Disparado localmente por **TEN VAD** al detectar pausa breve dentro del habla del usuario que continúa — sin pasar por el LLM | Emula la retroalimentación natural humana (ocurre *mientras* el usuario habla, no como respuesta). Cero costo de red/LLM. Inspirado en el nivel de fluidez de modos de voz nativos (ChatGPT Advanced Voice, Gemini Live), logrado sin adoptar esa arquitectura |
-| Voz-a-voz nativa (evaluada y descartada) | Se investigaron alternativas de voz-a-voz nativa (OpenAI Realtime API, Gemini Live, Nova Sonic) | Descartada: sin transcripción limpia (debilita el validador ético estructural), ata a un solo proveedor (rompe la resiliencia del fallback de Groq), modelo económico distinto al diseñado, y es una caja negra que contradice el principio de transparencia/control del proyecto. Se mantiene arquitectura en cascada (STT→LLM→TTS) |
+| Micrófono | Array de 4 canales del Kinect V2 | 034 |
+| Wake word | openWakeWord, con un modelo propio "Koda" por entrenar | 016 |
+| Comandos offline | Vosk (provisional) | 017 |
+| VAD | TEN VAD (provisional) | 018 |
+| STT | Groq Whisper large-v3-turbo | 019 |
+| TTS | Azure `es-PE-CamilaNeural`; Kokoro como candidato | 020 |
+| Arquitectura | Cascada STT → LLM → TTS, sin voz-a-voz nativa | 021 |
+| Latencia percibida | Streaming del LLM al TTS frase por frase, más frases cortas pre-sintetizadas ("déjame revisar…") mientras corre una tool lenta (navegar, dispensar, medir) | — |
+| Backchanneling ("ajá", "mju") | Lo dispara el VAD en local cuando el usuario hace una pausa corta sin terminar de hablar. No pasa por el LLM ni por la red | — |
+
+## Micrófono (Kinect V2)
+
+- Aparece en ALSA como "Xbox NUI Sensor": S32_LE, 4 canales, 16 kHz fijos; funciona por USB 2.0.
+- Probado en el Asus: la señal cruda es débil (pico ≈ -34 dB, RMS ≈ -52 dB), pero con ganancia la voz se entiende bien incluso con 3 impresoras 3D de fondo.
+- Antes del wake word y el VAD hay que pasar a 16 bits mono con ganancia fija o un AGC suave (normalizar el archivo completo distorsiona la voz).
+- **Pendiente:** probarlo en el Dell, dentro de la carcasa y a 2-3 m.
 
 ## Benchmarks pendientes
 
-Todos deben medirse en el hardware real (Dell Inspiron, micrófono real), no con cifras de benchmarks públicos ajenos. Ejecutar en Fase 1; **re-validar wake word/VAD dentro de la carcasa cerrada en Fase 3** (la acústica cambia).
+Se miden en el Dell con el micrófono real (Fase 1) y el wake word y el VAD se repiten dentro de la carcasa (Fase 3).
 
-| # | Benchmark | Opciones a comparar | Métrica clave |
+| # | Qué | Opciones | Métrica |
 |---|---|---|---|
-| 1 | Wake word | openWakeWord (única opción — Porcupine eliminado por completo tras el cierre del plan gratuito de Picovoice) | Precisión (falsos positivos/negativos) con voz real y el nombre del robot ("Koda"), consumo CPU |
-| 2 | VAD | WebRTC VAD vs Silero VAD vs TEN VAD (Cobra VAD eliminado por completo tras el cierre del plan gratuito de Picovoice) | Latencia de corte de habla, precisión con ruido ambiente real, consumo CPU |
-| 3 | TTS | Azure `es-PE-CamilaNeural` vs Kokoro | Naturalidad de voz en español, latencia real en el i3, viabilidad de correr 100% local |
-| 4 | STT offline (emergencia) | Vosk vs sherpa-onnx | Precisión con frases de emergencia en español, latencia, consumo |
+| 1 | Wake word (validación) | openWakeWord con el modelo "Koda" | Falsos positivos/negativos, CPU |
+| 2 | VAD | WebRTC vs Silero vs TEN | Latencia de corte, precisión con ruido, CPU |
+| 3 | TTS | Azure Camila vs Kokoro | Naturalidad, latencia en el i3 |
+| 4 | STT offline | Vosk vs sherpa-onnx | Precisión con las frases de emergencia, latencia, CPU |
 
-## Localización de la fuente sonora (diseño tentativo, bonus)
+## Girar hacia quien habla (bonus, tentativo)
 
-Ver ADR-033 en `DECISIONES_TECNICAS.md` para contexto completo, resultados preliminares y limitaciones. Diseño tentativo, no implementado:
+Solo si se construye (ADR-033; pruebas en `scripts/benchmarks/README.md`): el ángulo se estima sobre el audio que disparó el wake word, nunca mientras el robot habla o se mueve. El módulo de voz publica el ángulo y el árbol decide si girar con `turn_in_place`. Los umbrales se definen al implementar.
 
-- La estimación de ángulo (GCC-PHAT, solo azimut) se calcula **únicamente sobre el segmento de audio que disparó wake word/VAD** — nunca mientras el robot habla (evita captar su propia voz) ni mientras se mueve (evita ruido de motores).
-- Se toma la **mediana de varias ventanas** de ese segmento, no una lectura única, para reducir el efecto de ruido puntual.
-- El robot solo gira si `|ángulo| > ~20°`, y el giro se limita a la **mitad del ángulo estimado** (corrección conservadora, no un apuntado exacto).
-- El módulo de voz publicaría el ángulo estimado; la decisión de girar (y la ejecución vía `turn_in_place`) queda del lado del Behavior Tree (ver `ROBOT_COGNICION.md`).
+## Pendientes
 
-**Nota de pipeline:** el array del Kinect entrega S32_LE, 4 canales, 16 kHz — antes de openWakeWord/TEN VAD hace falta convertir a 16 bits mono/16 kHz, con ganancia fija calibrada o AGC suave (no normalización sobre archivo completo, que distorsiona la dinámica de la voz).
-
----
-
-## Información faltante / pendiente de revisión
-
-- **Resultados reales de los 4 benchmarks:** aún no ejecutados — sección a llenar con números concretos tras Fase 1 y re-validación en Fase 3.
-- **Manejo de UX ante pérdida total de conectividad** durante una conversación normal (más allá del "indicador discreto de conectividad" del HMI y de los comandos offline de emergencia) — no descrito.
-- **Micrófono:** candidato validado — array de 4 canales del Kinect V2 (aparece en ALSA como "Xbox NUI Sensor", S32_LE/4ch/16 kHz fijo, funciona por USB 2.0). Probado en el Asus: señal cruda débil (pico ≈ -34 dB, RMS ≈ -52 dB) pero con ganancia normalizada la voz se entiende con claridad incluso con ruido de fondo (3 impresoras 3D). **Pendiente:** re-validar dentro de la carcasa cerrada (Fase 3, la acústica cambia) y pruebas a 2 y 3 m de distancia.
+- Resultados de los 4 benchmarks.
+- Entrenar el wake word "Koda": datos (sintéticos o reales) y umbral de activación.
+- Qué pasa en una conversación si se cae internet (más allá del indicador del HMI y los comandos offline).

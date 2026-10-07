@@ -1,50 +1,63 @@
 # MEADLEASE — ROADMAP DE IMPLEMENTACIÓN
 
+Orden lógico por dependencias. Responsable por defecto: Andrés, salvo que se indique otro.
+
 ## FASE 0 — Cimientos
 
-- [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver árbol completo en `PROYECTO_GENERAL.md`
+- [x] Crear repo en GitHub + estructura de carpetas (manual, paso a paso) — ver estructura planificada en `PROYECTO_GENERAL.md`
 - [x] `venv --system-site-packages` + `uv` en el Asus (desarrollo) y en el Dell (pruebas de hardware real)
 - [x] Esquema SQLite creado a mano (`meadlease.db` — 6 tablas incl. `notas`) + `schema.sql` exportado
-- [x] `.gitignore` para `build/`, `install/`, `log/`, y `.env`
+- [x] `.gitignore` para `build/`, `install/`, `log/`, `.env`, bases de datos y datos personales
 - [x] `.env` (credenciales reales) + `.env.example` (plantilla) — Groq, Azure, Telegram
-- [x] Convención de idioma aplicada (código en inglés, contenido de usuario en español)
+- [x] Convención de idioma definida (código en inglés, contenido de usuario en español, identificadores de BD en español como excepción)
 
-**Salida esperada:** primer nodo ROS2 real corriendo desde cualquiera de las dos máquinas (Asus o Dell).
+**Salida:** repo, entornos, base de datos y credenciales listos en ambas máquinas.
 
 ---
 
-## FASE 1 — Todo lo que NO depende del robot físico ensamblado (arranca de inmediato, en paralelo al ensamblaje)
+## FASE 1 — Todo lo que NO depende del robot físico ensamblado (en paralelo al montaje)
 
-- [ ] **Percepción** con cámara Dell real: detección de presencia (MediaPipe Pose), reconocimiento facial (SCRFD+ArcFace+ONNX) — validar aquí calidad/FOV real de la cámara
-- [ ] **Voz** con micrófono real: los 4 benchmarks pendientes (wake word, VAD, TTS, STT offline) + pipeline completo integrado
-- [ ] **(Opcional/bonus) Validar localización de fuente sonora:** con el Kinect rotado a un ángulo real conocido y medido, tomar 10+ ventanas por posición, y recalibrar la separación `D` del array con `D_nuevo = D·sin(ángulo_estimado)/sin(ángulo_real)` (ver ADR-033 en `DECISIONES_TECNICAS.md`)
+- [ ] Crear `ros2_ws` + primer nodo ROS2 corriendo en el Asus y en el Dell
+- [ ] **Percepción** con cámara Dell real (Juan): detección de presencia (MediaPipe Pose), reconocimiento facial (SCRFD+ArcFace+ONNX) — validar aquí calidad/FOV real de la cámara
+- [ ] **Voz** con micrófono real (array del Kinect): entrenar el wake word "Koda" (openWakeWord), los 4 benchmarks (`ROBOT_VOZ.md`) + pipeline completo integrado
+- [ ] **(Opcional/bonus) Validar localización de fuente sonora** con el Kinect rotado a ángulos reales medidos y recalibrar la separación `D` del array — procedimiento en `scripts/benchmarks/README.md` (ADR-033)
+- [x] **Benchmark de LLM (Groq):** completado en septiembre 2026 — cadena de fallback definida (`gpt-oss-120b` → `gpt-oss-20b` → `qwen3.8-27b`), ver ADR-013 y `scripts/benchmarks/llm/`
 - [ ] **Agente (Pydantic AI):** loop de conversación con Groq + fallback 3+3, herramientas implementadas como **stubs** primero, validador ético estructural
 - [ ] **Behavior Tree (py_trees):** árbol raíz con jerarquía de prioridad, acciones como stubs al inicio
-- [ ] **HMI (NiceGUI):** estados + dashboard + mapa (datos de prueba) + control remoto QR — conectado a estados simulados primero, ROS2 real después
-- [ ] **Base de datos:** CRUD real contra el esquema, datos de prueba
-- [ ] **Telegram:** notificación real, probada de una vez (pieza más autocontenida)
-- [ ] **Simulación en Asus (Gazebo):** Nav2 + RTAB-Map contra robot simulado, valida lógica de navegación/búsqueda sin esperar ensamblaje físico
+- [ ] **Base de datos:** capa de acceso común (agente + HMI), CRUD real contra el esquema, datos de prueba (opcional: `database/seed.sql`)
+- [ ] **HMI (NiceGUI):** estados + dashboard + mapa (datos de prueba) + control remoto QR + configuración WiFi vía QR/hotspot — conectado a estados simulados primero, ROS2 real después
+- [ ] **Telegram:** reimplementar la notificación al cuidador (validada en el sistema anterior)
+- [ ] **(Opcional) Benchmark de Qwen VL** para decidir `describe_surroundings` (`ROBOT_COGNICION.md`)
+- [ ] **Modelos ONNX:** crear `scripts/fetch_models.py` + `models/README.md` al integrar SCRFD, ArcFace, openWakeWord, Vosk (ya previstos en `.gitignore`)
+- [ ] **Simulación en Asus (Gazebo):** Nav2 + RTAB-Map contra robot simulado, valida lógica de navegación/búsqueda sin esperar el montaje físico
 - [ ] **Regla transversal:** cada herramienta/acción se prueba aislada antes de conectarla al sistema completo
 
 **Salida esperada:** sistema completo funcionando "en el aire" (conversando, mostrando cara, decidiendo), listo para conectar a hardware real.
 
 ---
 
-## FASE 2 — Protocolo de comunicación (en paralelo a Fase 1, coordinado con Sergio y Linda)
+## FASE 2 — Protocolo de comunicación y firmware (en paralelo a Fase 1, con Sergio y Linda)
 
-- [ ] Especificación completa de la trama binaria+CRC8 (velocidad, sensores, dispensación, signos vitales, parada de emergencia)
-- [ ] Entrega de especificación + plantilla base en C (Arduino/PlatformIO) a Sergio y Linda
+- [x] Arquitectura del enlace UART: 2 líneas dedicadas, trama binaria + CRC8, watchdog (ADR-028)
+- [ ] Cerrar los mensajes del link Movilidad con Sergio, partiendo del borrador en `HARDWARE_FIRMWARE.md` y resolviendo sus problemas conocidos
+- [ ] Cerrar los mensajes del link Médica con Linda (misma base)
+- [ ] Definir la propagación de la parada de emergencia (STM32 → ESP32 / ROS2)
+- [ ] Definir la telemetría de energía (3 rieles del INA3221 + batería)
+- [ ] Decidir dónde vive la compensación por pendiente (IMU) y quién comanda las luces traseras (`ROBOT_MOVILIDAD.md`)
+- [ ] Resolver el riel de 5V con la tira COB (opciones A/B/C en `HARDWARE_FIRMWARE.md`, "Presupuesto de potencia")
+- [ ] Entrega de especificación + plantilla base en C (PlatformIO + ESP-IDF) a Sergio y Linda
 - [ ] Andrés implementa el lado STM32 (puente) y valida contra la especificación
 
-**Salida esperada:** protocolo cerrado en papel, firmwares de Sergio/Linda avanzando en paralelo sin bloquear ni bloquearse con la Fase 1.
+**Salida esperada:** protocolo cerrado y firmwares de Sergio/Linda avanzando en paralelo sin bloquear ni bloquearse con la Fase 1.
 
 ---
 
-## FASE 3 — Integración progresiva (dependiente de hitos de hardware, en el orden en que vayan llegando)
+## FASE 3 — Integración progresiva (en el orden en que vayan llegando los hitos de hardware)
 
-- [ ] **PCB de movilidad lista (Sergio)** → `navigate_to`/`find_user` reales, UART Movilidad end-to-end, `esp32_bridge_node` real
-- [ ] **Pastillero con ajustes terminados (Linda)** → `dispense_medication` real, UART Médica end-to-end
-- [ ] **Carcasa completamente armada (post-procesado)** → montaje definitivo Dell/Kinect/cámara/parlante, validación de cableado, **re-validar benchmarks de voz dentro de la carcasa cerrada** (la acústica cambia respecto al Dell suelto en escritorio) — incluye repetir, si aplica, la validación de localización de fuente sonora (bonus, ver Fase 1 y ADR-033)
+- [ ] **Firmware Movilidad integrado (Sergio)** → `navigate_to`/`find_user` reales, UART Movilidad end-to-end, integración STM32 (micro-ROS) ↔ ROS2 real
+- [ ] **Pastillero con ajustes terminados + firmware Médica integrado (Linda)** → `dispense_medication` real, UART Médica end-to-end
+- [ ] **Cableado de torso y cabeza (Sergio) + montaje final** de Dell/Kinect/cámara/parlante dentro de la carcasa terminada → validación de cableado y **re-validación de los benchmarks de voz dentro de la carcasa cerrada** (la acústica cambia respecto al Dell suelto en escritorio); si aplica, repetir la validación de localización de fuente sonora (bonus)
+- [ ] Integrar el numpad MPR121 (uso a definir, ver `ROBOT_HMI.md`)
 
 **Salida esperada:** robot físico completo respondiendo a todas las herramientas del agente con hardware real, no stubs.
 
@@ -55,7 +68,7 @@
 - [ ] UART STM32↔ambos ESP32 bajo carga real (movimiento + dispensación simultáneos si aplica)
 - [ ] Mapeo real del espacio de la demo (modo manual/asistido)
 - [ ] Flujo completo del Módulo 3 (búsqueda del usuario) de punta a punta con robot real
-- [ ] Pruebas de estabilidad: batería, temperatura, comportamiento ante fallos de red (con y sin hotspot)
+- [ ] Pruebas de estabilidad: batería (con el Kinect siempre encendido), temperatura, comportamiento ante fallos de red (con y sin hotspot)
 
 ---
 
@@ -70,15 +83,7 @@
 
 ## FASE 6 — Documentación y cierre
 
-- [ ] División del documento maestro en archivos modulares definitivos (este proceso, en curso)
-- [ ] Actualización de `DECISIONES_TECNICAS.md` (formato ADR) con las decisiones de esta reformulación
-- [ ] Registro de resultados finales de los 4 benchmarks con números reales
-
----
-
-## Información faltante / pendiente de revisión
-
-- **Fechas concretas por fase:** el documento maestro deja explícito que es "sin fechas — orden lógico por dependencias". Falta desglosar el rango 6-ago-2026 → 1-nov-2026 en hitos semanales/quincenales por fase.
-- **Criterios de "hecho" (Definition of Done) por fase:** no están definidos más allá de la "salida esperada" general de cada fase.
-- **Dependencias cruzadas explícitas** entre tareas de Fase 1 (ej. ¿el HMI puede avanzar sin que el agente tenga tools reales? ¿la simulación Gazebo bloquea algo de Fase 3?) — hoy están listadas como paralelas pero sin diagrama de dependencias.
-- **Responsable por tarea dentro de cada fase** (más allá de lo ya asignado a Sergio/Linda en Fase 2 y 3) — varias tareas de Fase 0/1/4/5/6 no tienen dueño explícito distinto de "Andrés" por defecto.
+- [x] División del documento maestro en archivos modulares (documento maestro archivado en `docs/archivo/`)
+- [x] Registro de decisiones en `DECISIONES_TECNICAS.md` (formato ADR)
+- [ ] Análisis de precio de producción en masa: inventario de componentes (Excel, se subirá a `docs/`), posibles reemplazos más económicos y costo por unidad (resultado como documento aparte en `docs/`)
+- [ ] Registro de resultados finales de los benchmarks de voz con números reales en `ROBOT_VOZ.md` (el benchmark de LLM ya está registrado en ADR-013)

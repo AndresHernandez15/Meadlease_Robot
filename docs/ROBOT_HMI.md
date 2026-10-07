@@ -1,49 +1,51 @@
 # MEADLEASE — EXPRESIVIDAD / HMI
 
-> **Corresponde a:** `robot_hmi`
+> **Paquete:** `robot_hmi` (Módulo 6)
 
----
+## Funciones
 
-## Objetivos funcionales (Módulo 6)
+- **Esencial:** comunicar el estado sin palabras, con una cara coherente con lo que el robot dice y hace.
+- **Dashboard** de salud, medicación e historial, con tendencias de signos vitales.
+- **Entrada:** trackpad + numpad MPR121 (ya montado; falta decidir para qué se usa).
+- **Dictado por voz:** sin pantalla táctil ni teclado, escribir con el trackpad es incómodo, así que cualquier campo de formulario (medicamento, nombre de un waypoint…) se puede llenar hablando. Necesita internet.
+- **Indicadores:** conectividad, batería y "esperando tu respuesta".
+- **Sonidos de feedback** (p. ej. un beep al dejar de escuchar).
+- **"Qué puedo hacer":** slideshow de capacidades cuando se le pregunta.
+- **Bonus:** cerrar el dashboard solo, por privacidad.
+- **Descartado:** botón de parada en pantalla (ADR-023) y "modo cuidador" con datos ampliados.
+- **Nombre en la pantalla de reposo:** probablemente innecesario si va en la carcasa (pendiente en `PROYECTO_GENERAL.md`).
 
-- Comunicación de estado sin palabras — esencial.
-- Coherencia emocional entre expresión visual y lo dicho/hecho.
-- Dashboard de datos de salud, medicación, historial (con gráfico de tendencias de signos vitales).
-- Interacción táctil (trackpad) + numpad MPR121 (ya montado en hardware — decisión pendiente es *para qué* se usa, no si se usa).
-- **Entrada de parámetros por voz (dictado):** dado que el robot no tiene pantalla táctil ni teclado físico, y navegar un teclado virtual con el trackpad es incómodo/poco práctico, cualquier campo de formulario del HMI (ej. agregar medicamento, configurar WiFi, nombre de un waypoint) puede llenarse por voz en vez de tipeando — el usuario activa un "modo dictado" sobre el campo enfocado y el texto reconocido lo completa.
-- Cierre automático de dashboard por privacidad — bonus, no bloqueante.
-- Efectos de sonido de retroalimentación (ej. beep al dejar de escuchar) — capa transversal de audio, no depende del framework de HMI elegido.
-- Indicador discreto de conectividad (modo online/offline).
-- Indicador de batería.
-- Pantalla tipo "slideshow" de capacidades del robot cuando se le pregunta qué puede hacer.
-- Estado visual de "espera de confirmación" (cuando el robot pregunta algo y espera respuesta).
-- Botón de parada en HMI: **descartado** — sin pantalla táctil, mover el mouse hasta el botón no es práctico; se mantiene solo el físico.
-- Nombre del robot en pantalla de reposo: **probablemente innecesario** si el nombre se coloca en la carcasa física — pendiente de decisión de diseño físico (ver `PROYECTO_GENERAL.md`).
-- Pantalla de "modo cuidador" con datos médicos ampliados: **descartada**, fuera de alcance/objetivos definidos.
+## Decisiones
 
-## Decisiones técnicas (Capa 7)
+| Qué | Decisión |
+|---|---|
+| Framework | NiceGUI en Chromium modo kiosco (ADR-022) |
+| Cara | Canvas propio dentro de NiceGUI (springs, ondas de audio) |
+| Sonidos | Web Audio API o una librería Python; no depende del framework |
+| Datos | Lee y escribe la BD con la misma capa de acceso que el agente (`database/README.md`) |
+| Mapa | Occupancy grid de Nav2 dibujado en canvas; con un clic se definen waypoints y la base (`ROBOT_MOVILIDAD.md`) |
+| Mapeo y control remoto por QR | Ver `ROBOT_MOVILIDAD.md` |
+| Dictado | El mismo STT del agente (Groq Whisper) en "modo dictado": escribe en el campo enfocado sin pasar por el LLM |
+| WiFi | Desde el celular por QR (abajo). El teclado virtual `onboard` queda de respaldo. El dictado no sirve aquí porque no hay internet |
+| Horarios de medicación | Que el usuario elija "todos los días", "algunos días" o "cada X horas" sin conocer el modelo de datos. El diseño visual se define al implementar |
 
-| Componente | Decisión | Justificación |
-|---|---|---|
-| Framework | **NiceGUI** sobre Chromium Kiosk | Construido sobre FastAPI+WebSockets (misma base que el sistema anterior), pero toda la interfaz en Python puro — unifica lenguaje con agente/BT/nodos ROS2. Usado en producción para paneles de robots (Zauberzeug) |
-| Alternativa evaluada y descartada | **Godot Engine** | Integración con ROS2 es experimental/comunidad, requiere compilar módulo C++ propio dentro del engine — mismo tipo de riesgo frágil que el driver del Kinect, no apto para deadline |
-| Animación de cara | Componente canvas personalizado embebido dentro de NiceGUI (springs, ondas de audio) | NiceGUI permite insertar HTML/JS personalizado cuando hace falta |
-| Efectos de sonido | Reproducción de audio estándar (Web Audio API o librería de audio Python), independiente del framework elegido | No es una limitación de NiceGUI — aclarado explícitamente |
-| Mapa interactivo | Renderizado de `/map` (occupancy grid de Nav2) como imagen en canvas, clic define waypoints/estación de carga | Reutiliza Waypoint Follower de Nav2 (ver `ROBOT_MOVILIDAD.md`) |
-| Modo de mapeo | Manual/asistido (no exploración autónoma) | Ver `ROBOT_MOVILIDAD.md` |
-| Control remoto | Página adicional del mismo servidor NiceGUI, acceso vía QR (misma red WiFi que la demo) | Sin infraestructura nueva — consecuencia de decisiones ya tomadas |
-| Configuración WiFi | Página en NiceGUI + teclado virtual del sistema (`onboard` o similar de Linux), con opción de dictado por voz como alternativa | Evita reinventar teclado en pantalla; el dictado cubre el caso en que tipear con el trackpad es incómodo |
-| Entrada de parámetros por voz (dictado) | Reutiliza el mismo pipeline STT del agente (**Groq Whisper large-v3-turbo**, ver `ROBOT_VOZ.md`) en un "modo dictado" del HMI: transcribe y vuelca el texto en el campo de formulario enfocado, sin pasar por el agente/LLM | No duplica infraestructura de voz — mismo STT ya validado, aplicado a un caso de uso distinto (input de UI en vez de conversación) |
-| Pantalla de horario de medicación | Selector de días tipo L-M-M-J-V-S-D con casilla "todos los días" para alternar entre modo `diario`/`dias_semana`, y un modo alternativo para "cada X horas desde una hora de inicio" (`intervalo`) | Da flexibilidad de ingreso sin que el usuario final necesite entender los 3 modos de `horarios_medicacion` (ver `database/README.md`, §3.3) |
-| Botón de parada en HMI | **Descartado** | Sin pantalla táctil, impráctico — se mantiene solo el físico |
+### WiFi por QR (propuesta, sin implementar)
 
----
+Si no hay una red conocida:
 
-## Información faltante / pendiente de revisión
+1. El Dell crea su propia red (`nmcli device wifi hotspot`, p. ej. `Koda-setup`).
+2. La pantalla muestra dos QR: uno para conectar el celular a esa red (`WIFI:T:WPA;S:Koda-setup;P:…;;`) y otro con la URL de una página de NiceGUI (p. ej. `http://10.42.0.1:8080/wifi`).
+3. La página lista las redes (`nmcli device wifi list`), recibe red y contraseña y ejecuta `nmcli device wifi connect`.
+4. La tarjeta del Dell normalmente no puede ser punto de acceso y cliente a la vez: al enviar, se apaga la red propia y se intenta conectar; si falla, vuelve a crearla y muestra el error.
 
-- **Enumeración de los estados del HMI:** no hay un número fijo predefinido de estados — se definen y se amplían según necesidad durante el desarrollo (evitar camisa de fuerza desde el diseño). Falta definir el set inicial y su relación con los eventos del agente/BT, con la expectativa de que crezca orgánicamente.
-- **Diseño visual concreto** (paleta de colores por estado/urgencia, wireframes de las pantallas, tipografía) — no está especificado más allá de la descripción funcional.
-- **Uso concreto del numpad MPR121:** explícitamente marcado como pendiente ("decisión pendiente es *para qué* se usa, no si se usa") — sin definir aún si queda como respaldo del dictado por voz (ruido ambiente, privacidad de datos hablados) o si cubre otro caso de uso distinto.
-- **Detalle del "modo dictado" por voz:** falta definir activación (botón en el campo, comando de voz, MPR121), manejo de errores de transcripción (confirmación antes de guardar, edición manual posterior), y comportamiento si no hay conexión a internet (el STT es cloud, ver `ROBOT_VOZ.md`).
-- **Especificación de la pantalla "slideshow" de capacidades:** no se detalla contenido ni cuántas diapositivas/tarjetas incluye.
-- **Detalle del cierre automático de dashboard por privacidad:** temporizador, condición de activación — no especificado (marcado como bonus).
+Es el patrón de *balena wifi-connect* y *comitup*. Primero hay que comprobar que la tarjeta WiFi del Dell soporte el modo hotspot.
+
+## Pendientes
+
+- Set inicial de estados del HMI y su relación con los eventos del agente y del árbol (crecerá durante el desarrollo).
+- Diseño visual: colores por estado/urgencia, pantallas, tipografía.
+- Para qué sirve el MPR121: ¿respaldo del dictado (ruido, privacidad, sin red) u otra cosa?
+- Modo dictado: cómo se activa, cómo se corrigen errores y qué pasa sin conexión.
+- WiFi por QR: implementación y prueba del hotspot.
+- Contenido del slideshow de capacidades.
+- Cierre automático del dashboard: tiempo y condición (bonus).

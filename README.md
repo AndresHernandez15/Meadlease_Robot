@@ -1,104 +1,58 @@
 # Meadlease_Robot
 
-Robot asistente doméstico para acompañamiento y apoyo a personas mayores. Proyecto de grado — Universidad Tecnológica de Bolívar, Ingeniería Mecatrónica, Biomédica y Sistemas.
+Robot asistente doméstico para acompañar y apoyar a personas mayores. Proyecto de grado de Ingeniería Mecatrónica, Biomédica y Sistemas — Universidad Tecnológica de Bolívar, 2026.
 
-> Estado: en construcción activa. El proyecto pasó por una reformulación arquitectónica completa en agosto de 2026 tras detectar que el sistema anterior se había construido módulo por módulo, sin pensar en cómo cada pieza afecta al resto (latencia, memoria, complejidad de integración). Este repositorio contiene la reconstrucción desde cero.
+**Koda** es el nombre del robot; **Meadlease**, el del proyecto.
 
-## Qué es Meadlease
+> En construcción. En agosto de 2026 el proyecto se reformuló desde cero: el sistema anterior se había construido módulo por módulo, sin pensar en cómo cada pieza afecta al resto.
 
-Meadlease es un robot doméstico pensado para adultos mayores que viven solos o con supervisión limitada. No busca ser un chatbot con ruedas: la idea es que el robot inicie comportamiento por su cuenta, tome decisiones y actúe con propósito propio, sin que el usuario tenga que invocarlo constantemente.
+## Qué hace
 
-Funciones principales:
+Koda no busca ser un chatbot con ruedas: inicia comportamiento por su cuenta, toma decisiones y actúa con propósito propio.
 
-- Conversación natural en español, con memoria de turno y validación ética estructural sobre lo que el agente puede decir.
-- Dispensación de medicamentos, programada o bajo demanda, con verificación de identidad previa por reconocimiento facial.
-- Medición de signos vitales (frecuencia cardíaca, SpO₂, temperatura) con registro histórico y visualización de tendencias.
-- Navegación autónoma dentro del hogar, incluyendo búsqueda activa del usuario cuando no está a la vista.
-- Parada de emergencia por botón físico o comando de voz offline, sin dependencia de red.
-- Escalación a un cuidador humano vía Telegram cuando la situación lo amerita.
+- Conversa en español, con memoria de turno y un validador ético que le impide diagnosticar o recetar.
+- Dispensa medicamentos (programados o a pedido) tras reconocer la cara del usuario.
+- Mide frecuencia cardíaca, SpO₂ y temperatura, y guarda el historial.
+- Navega por la casa y busca al usuario cuando no lo ve.
+- Se detiene por botón físico, sensor táctil o comando de voz offline, sin depender de la red.
+- Avisa a un cuidador por Telegram cuando hace falta.
 
-Es un prototipo de tesis, no un producto terminado: las decisiones de alcance están filtradas explícitamente para funcionar de forma consistente en una sustentación en vivo de 15 minutos, no para cubrir cada caso límite de un despliegue real.
+Es un prototipo de tesis: el alcance está pensado para funcionar de forma consistente en una sustentación en vivo de 15 minutos.
 
 ## Arquitectura
 
-El sistema se organiza en dos capas que se comunican pero no se pisan:
+Dos capas:
 
-- **Capa reactiva** — un Behavior Tree (`py_trees` + `py_trees_ros`) siempre activo, sin LLM en el medio, que ejecuta y protege: emergencia, obstáculos y prioridades de movimiento tienen la última palabra y pueden interrumpir sin consultar a nadie.
-- **Capa deliberativa** — un agente basado en LLM (Pydantic AI) que interpreta lenguaje natural, decide metas y propone intenciones vía tool calls. El agente propone, el árbol dispone.
+- **Reactiva:** un Behavior Tree (`py_trees`) siempre activo y sin LLM. Emergencias, obstáculos y prioridades de movimiento tienen la última palabra.
+- **Deliberativa:** un agente LLM (Pydantic AI + Groq) que interpreta lenguaje natural y propone intenciones vía tool calls. El agente propone, el árbol dispone.
 
-A nivel de hardware, un Dell Inspiron sin GPU corre Ubuntu 24.04 + ROS 2 Jazzy como único cerebro del robot. La comunicación con los actuadores pasa por un STM32 como puente único hacia dos ESP32 (movilidad y médica), vía UART con trama binaria y CRC8 — el movimiento y la parada de emergencia no dependen de WiFi bajo ninguna circunstancia.
-
-```
-Percepción (cámara + Kinect)
-        │
-        ▼
-Behavior Tree (py_trees)  ←──────────────┐
-        │                                │
-        ▼                                │
-   Agente LLM (Pydantic AI)  ────────────┘
-        │
-        ▼
-STM32 (puente UART) ── ESP32 Movilidad
-                    └── ESP32 Médica ── ESP32-CAM
-```
-
-## Stack tecnológico
-
-| Capa | Tecnología |
-|---|---|
-| Middleware | ROS 2 Jazzy Jalisco sobre Ubuntu 24.04 LTS |
-| Percepción | MediaPipe Pose (presencia), SCRFD + ArcFace vía ONNX Runtime (reconocimiento facial) |
-| SLAM / navegación | RTAB-Map, Nav2 |
-| Agente / cognición | Pydantic AI, Groq (Llama 3.3 70B Versatile), fallback de 3 modelos + key principal a 3 modelos + key secundaria |
-| Árbol de comportamiento | py_trees / py_trees_ros |
-| Voz | openWakeWord (wake word), TEN VAD, Groq Whisper large-v3-turbo (STT), Azure `es-PE-CamilaNeural` (TTS), Vosk acotado a comandos de emergencia offline |
-| Interfaz (HMI) | NiceGUI sobre Chromium en modo kiosco |
-| Firmware | STM32CubeIDE (puente STM32), PlatformIO + Arduino (ESP32 movilidad y médica) |
-| Datos | SQLite |
-| Notificaciones | Bot de Telegram |
-
-Cada decisión de este stack está documentada con su alternativa evaluada y el motivo de descarte en [`docs/DECISIONES_TECNICAS.md`](docs/DECISIONES_TECNICAS.md).
-
-## Estructura del repositorio
+Un Dell Inspiron sin GPU (Ubuntu 24.04 + ROS 2 Jazzy) es el único cerebro. Un STM32 (micro-ROS) hace de puente por UART hacia dos ESP32, así que movimiento y parada de emergencia nunca dependen del WiFi.
 
 ```
-meadlease/
-├── ros2_ws/
-│   └── src/
-│       ├── robot_bringup/       # launch files, config Nav2/RTAB-Map, waypoints, URDF
-│       ├── robot_interfaces/    # mensajes/servicios/acciones personalizados
-│       ├── robot_perception/    # detección de presencia + reconocimiento facial
-│       ├── robot_voice/         # wake word, VAD, STT, TTS, filler, backchanneling
-│       ├── robot_cognition/     # agente Pydantic AI + Behavior Tree
-│       └── robot_hmi/           # NiceGUI + bridge a ROS2
-├── firmware/
-│   ├── stm32_backbone/          # puente STM32 (STM32CubeIDE)
-│   ├── esp32_movilidad/         # firmware motores, encoders, ultrasonidos (PlatformIO)
-│   └── esp32_medica/            # firmware dispensador, signos vitales (PlatformIO)
-├── database/                    # esquema SQLite y notas de creación manual
-├── docs/                        # documentación técnica modular
-├── scripts/benchmarks/          # benchmarks de voz (wake word, VAD, TTS, STT)
-├── simulation/                  # mundos y modelos Gazebo
-└── .env.example
+Percepción (cámara Dell)   Voz (micrófono Kinect)
+          │                        │
+          ▼                        ▼
+   Behavior Tree (py_trees) ◄──── Agente LLM (Pydantic AI)
+          │                 propone intenciones
+          ▼
+   STM32 (micro-ROS, puente UART) ── ESP32 Movilidad
+                                  └── ESP32 Médica ── ESP32-CAM
 ```
 
-## Equipo
+## Estado
 
-| Integrante | Área | Responsabilidad |
-|---|---|---|
-| Andrés | Mecatrónica + Sistemas | Arquitectura y desarrollo de todo el software: ROS 2, agente, árbol de comportamiento, HMI, integración |
-| Linda | Biomédica + Mecatrónica | Diseño mecánico y firmware del dispensador de medicamentos (ESP32 Médica) |
-| Sergio | Mecatrónica | Cableado, PCB de movilidad y firmware de movilidad (ESP32 Movilidad) |
-| Juan | Mecatrónica | Visión artificial y post-procesado|
+La arquitectura está definida y registrada en los ADR. Los detalles de integración (mensajes UART, tópicos ROS 2, firmas de tools) se cierran al implementar cada parte.
 
-## Estado actual
-
-El proyecto está en la fase posterior a la reformulación arquitectónica: las decisiones de diseño están cerradas y documentadas, y la implementación avanza en paralelo al ensamblaje físico (impresión 3D casi terminada, post-procesado con base pintada, dispensador funcional, PCB de movilidad resuelta). El detalle fase por fase vive en [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Robot físico: impreso, post-procesado y pintado con el acabado final; dispensador funcional; base cableada (faltan torso y cabeza). Avance por fases en el [roadmap](docs/ROADMAP.md).
 
 ## Documentación
 
-La documentación técnica completa, incluyendo el registro de decisiones de arquitectura (formato ADR) y el detalle funcional de cada módulo, está en la carpeta [`docs/`](docs/).
-
----
-
-Proyecto de grado — Universidad Tecnológica de Bolívar, 2026.
+| Documento | Contenido |
+|---|---|
+| [`PROYECTO_GENERAL.md`](docs/PROYECTO_GENERAL.md) | Contexto, equipo, principios, entorno, estructura del repo |
+| [`DECISIONES_TECNICAS.md`](docs/DECISIONES_TECNICAS.md) | Decisiones (ADR) con alternativas y justificación |
+| [`ROADMAP.md`](docs/ROADMAP.md) | Fases de implementación |
+| [`ROBOT_PERCEPCION`](docs/ROBOT_PERCEPCION.md) · [`ROBOT_COGNICION`](docs/ROBOT_COGNICION.md) · [`ROBOT_MOVILIDAD`](docs/ROBOT_MOVILIDAD.md) · [`ROBOT_VOZ`](docs/ROBOT_VOZ.md) · [`ROBOT_HMI`](docs/ROBOT_HMI.md) | Un documento por módulo |
+| [`HARDWARE_FIRMWARE.md`](docs/HARDWARE_FIRMWARE.md) | Inventario, energía, comunicación con microcontroladores |
+| [`database/README.md`](database/README.md) | Esquema de la base de datos |
+| [`scripts/benchmarks/README.md`](scripts/benchmarks/README.md) | Benchmarks y experimentos |

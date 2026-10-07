@@ -1,38 +1,28 @@
 # MEADLEASE — PERCEPCIÓN
 
-> **Corresponde a:** `robot_perception` (Juan)
+> **Paquete:** `robot_perception` (Juan) — Módulo 1
 
-*(Nota: `robot_perception` como paquete separado no es solo prolijidad — es la frontera de trabajo de Juan, quien solo necesita tocar esa carpeta sin fricción de coordinación con el resto del equipo.)*
+## Funciones
 
----
-
-## Objetivos funcionales (Módulo 1)
-
-| Función | Alcance | Demo |
+| Función | Alcance | En la demo |
 |---|---|---|
-| Detección de presencia | Cámara Dell integrada (no Kinect, ahorro energético) — a validar calidad de cámara en Fase 1 | Background, siempre activa |
-| Identificación de usuario | Acotada exclusivamente a gatear la dispensación de medicamentos. **Debe soportar 2 usuarios o más registrados simultáneamente** (ej. varios adultos mayores en el mismo hogar) — cada uno con su propio embedding facial, su propio esquema de medicación y su propio historial | Momento en vivo específico (usuario no reconocido → no dispensa; usuario reconocido → se identifica cuál es antes de dispensar) |
-| Mapeo y localización propia | Esencial | Soporte de navegación |
-| Detección de obstáculos/personas en movimiento | Esencial | Soporte de navegación |
-| Escucha ambiental continua | **Eliminada** | — |
-| Estado interno de "atención" | Explorable, no bloqueante | Bonus |
-| Kinect V2 | Reservado exclusivamente a SLAM/navegación — se activa solo cuando el robot necesita moverse, no constante | — |
+| Detección de presencia | Con la cámara Dell (su calidad se valida en Fase 1) | En background, siempre activa |
+| Identificación del usuario | Solo para autorizar la dispensación. Debe soportar 2 o más usuarios, cada uno con su embedding, sus horarios y su historial. Si hay varias personas en cuadro, se reportan todas; a quién atender lo decide cognición | En vivo: un desconocido no recibe medicamento; un usuario reconocido sí |
+| Soporte a la navegación | Mapeo, localización y obstáculos los resuelven RTAB-Map/Nav2 con el Kinect y los ultrasonidos (`ROBOT_MOVILIDAD.md`) | — |
+| Estado de "atención" | Explorable, no bloqueante | Bonus |
+| Escucha ambiental continua | Eliminada | — |
 
-## Decisiones técnicas (Capa 3)
+## Decisiones
 
-| Función | Decisión | Justificación |
-|---|---|---|
-| Detección de presencia | **MediaPipe Pose** (sin cambio) | Sigue siendo la mejor opción CPU-only en 2026, ya validado funcionando |
-| Reconocimiento facial | **SCRFD (detección) + ArcFace (embeddings) vía ONNX Runtime**, similitud coseno | Reemplaza LBPH. Resuelve de raíz el bug de pipeline multi-usuario incompleto (agregar usuario = agregar embedding, sin reentrenar) — soporta los 2+ usuarios registrados requeridos (Módulo 1). Menos fotos necesarias (3-5 vs 200), menor sensibilidad a iluminación. Comparte runtime ONNX con VAD/wake word (ver `ROBOT_VOZ.md`) |
-| Cámara | Cámara Dell integrada, exclusiva para percepción visual | Kinect reservado a SLAM. Ya validada informalmente en el sistema anterior (funcionó correctamente) — no es un riesgo que preocupe de momento, pero se re-confirma en Fase 1. **Plan B si no fuera suficiente:** usar el Kinect también para percepción visual, o en última instancia una webcam externa |
+| Qué | Decisión |
+|---|---|
+| Presencia | MediaPipe Pose (igual que antes; ya validado sin GPU) |
+| Reconocimiento facial | SCRFD + ArcFace en ONNX Runtime, similitud coseno (ADR-009) |
+| Cámara | La cámara Dell es la única que mira personas; el Kinect no (ADR-034). Funcionó en el sistema anterior y se reconfirma en Fase 1. Plan B: usar también el Kinect o una webcam externa |
 
----
+## Pendientes
 
-## Información faltante / pendiente de revisión
-
-- **Caso de dos o más usuarios en el mismo cuadro simultáneamente:** no se especifica cómo el sistema decide a cuál atender/dispensar primero.
-- **Umbral concreto de similitud coseno** para aceptar/rechazar una coincidencia de ArcFace (falsos positivos vs. falsos negativos).
-- **Resolución/FPS de la cámara Dell** y su FOV real — el documento marca esto como "a validar en Fase 1", aún sin números.
-- **Detalle del "estado interno de atención"** mencionado como explorable/bonus — sin especificación de qué señales lo componen ni cómo se expone al resto del sistema (HMI/agente).
-- **Proceso de alta/registro de un nuevo usuario** (cuántas fotos, flujo de UI, quién lo ejecuta) — no descrito, solo se menciona que "agregar usuario = agregar embedding, sin reentrenar".
-- **Alimentación/USB del Kinect si su micrófono se usa para voz:** la fila de arriba dice que el Kinect está "reservado exclusivamente a SLAM/navegación, se activa solo cuando el robot necesita moverse". Si el array de micrófonos del Kinect se valida como micrófono de voz (ver `ROBOT_VOZ.md`), el dispositivo tendría que estar encendido de forma más constante que solo "cuando se mueve" — el audio no requiere `libfreenect2` corriendo, pero sí que el Kinect tenga alimentación. **Decisión pendiente, sin resolver todavía:** cómo/cuándo se enciende el Kinect si cumple ambos roles.
+- Umbral de similitud coseno para aceptar una cara (balance entre falsos positivos y negativos).
+- Resolución, FPS y campo de visión reales de la cámara Dell.
+- Qué es exactamente el "estado de atención" y cómo se comunica al HMI y al agente (bonus).
+- Registro de un usuario nuevo: cuántas fotos, flujo en el HMI y quién lo hace. Ya se sabe que primero se crean los datos y después la cara (`database/README.md`).

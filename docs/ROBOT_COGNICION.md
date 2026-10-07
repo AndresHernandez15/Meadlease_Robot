@@ -1,106 +1,88 @@
 # MEADLEASE — COGNICIÓN Y AGENCIA
 
-> **Corresponde a:** `robot_cognition`
+> **Paquete:** `robot_cognition`. Cubre el Módulo 2 (cognición), el Módulo 5 (salud) y las integraciones externas.
 
----
+## Módulo 2 — Cognición
 
-## Objetivos funcionales (Módulo 2 — Cognición / Agencia)
+- **Dos capas:** un Behavior Tree siempre activo y sin LLM (reactivo) y un agente LLM que decide metas y toma la iniciativa (deliberativo). El agente propone, el árbol ejecuta y puede interrumpir (ADR-015).
+- **Metas propias:** a partir de los horarios de medicación y mediciones de la BD.
+- **Iniciativa moderada**, con 3 disparadores: (1) dosis próxima o vencida, (2) signo vital fuera de rango, (3) el usuario vuelve a aparecer tras una ausencia (saludo o comentario).
+- **Personalidad:** calmada y profesional, como un cuidador, con algo de humor y curiosidad propia (hace preguntas). Ni payaso ni frío.
+- **Memoria:** la de la sesión (turnos recientes) + datos importantes en la BD (mediciones, dispensaciones, notas con `save_note`). No recuerda conversaciones de sesiones anteriores (ADR-027).
+- **Prioridades fijas en el árbol:** emergencia > tarea médica en curso > conversación > reposo. El LLM no arbitra.
+- **Urgencia visible:** el tono y el color del HMI cambian según la prioridad del evento.
+- **Límites éticos:** un validador de Pydantic AI revisa cada respuesta del agente: nunca diagnostica ni receta, solo recomienda y deriva a una persona. No depende solo del prompt.
 
-- **Arquitectura híbrida:** capa reactiva (Behavior Tree, siempre activa, sin LLM) + capa deliberativa (agente con LLM, decide metas e inicia comportamiento). El agente **propone** intenciones; el árbol **dispone y protege** (ejecuta, con reflejos de mayor prioridad que pueden interrumpir).
-- **Gestión de metas propias:** basada en horarios de medicación/mediciones, extendiendo esquema de BD existente.
-- **Iniciativa proactiva:** nivel **moderado** — saluda/comenta espontáneamente al reconocer presencia tras ausencia, más 3 disparadores: (1) horario médico próximo/vencido, (2) valor de signos vitales fuera de rango, (3) saludo al detectar presencia.
-- **Personalidad definida:** base calmada y profesional (tipo cuidador/enfermero), con humor ligero ocasional y curiosidad genuina (hace preguntas propias). Nunca payasesco ni frío.
-- **Memoria:** de sesión (contexto conversacional, turnos deslizantes) + registro estructurado en BD para datos importantes (mediciones, dispensaciones, notas puntuales vía herramienta `save_note`). Recuperación proactiva de memoria entre sesiones distintas: **fuera de alcance por ahora** (bonus post-defensa).
-- **Priorización de tareas en conflicto:** jerarquía fija en el Behavior Tree (emergencia > tarea médica en curso > conversación > reposo), sin arbitraje vía LLM.
-- **Adaptación de urgencia:** cambio de tono/color HMI según nivel de prioridad del evento.
-- **Límites éticos:** capa de validación **estructural y dura** sobre la salida del agente (nunca diagnostica, nunca prescribe, sólo da recomendaciones y deriva a supervisión humana) — implementada como validator de Pydantic AI, no como instrucción de prompt únicamente.
+## Módulo 5 — Salud
 
-## Objetivos funcionales (Módulo 5 — Salud y Cuidado Médico)
+**Dispensación:** programada o a pedido, siempre tras verificar la identidad (Módulo 1), con confirmación real de entrega y registro de cada intento. Solo se manejan los fallos realistas de la demo (usuario no reconocido, la pastilla no cae).
 
-**5A — Dispensación:** programada y bajo demanda, verificación de identidad previa (Módulo 1), confirmación real de entrega, registro y trazabilidad completa. Manejo de excepciones acotado a casos realistas de demo (usuario no reconocido, fallo de caída de pastilla) — sin manejo exhaustivo de fallos mecánicos poco probables.
+**Signos vitales:** a pedido o programados, con historial y tendencias para el cuidador. Si un valor sale de rango cambia el tono/color, sin interpretación médica.
 
-**5B — Signos vitales:** medición bajo demanda y programada, registro histórico **con vista de tendencias en el tiempo** (útil para cuidador/médico), reacción visible (tono/color) ante valores fuera de rango, sin lógica médica de interpretación sofisticada.
+**Emergencias:** se activan con el botón NC, el sensor TTP223 (`HARDWARE_FIRMWARE.md`) o un comando de voz offline ("detente", "ayuda", "emergencia"). Cualquiera de ellas **solo detiene el robot** y lo deja esperando una reanudación explícita: no notifica a nadie ni hace nada más. La detección autónoma de anomalías queda fuera de alcance.
 
-**5C — Emergencias:** activación por botón físico (hardware, máxima prioridad, no cancelable por voz) y por comando de voz offline — ambas esenciales. Ambas vías realizan **exclusivamente** una parada de emergencia: frenar motores/movimiento y quedar a la espera de reanudación explícita — no envían notificaciones ni ejecutan ninguna otra acción. **Detección autónoma de anomalías (sin que nadie la pida): fuera de alcance.**
+**Parada ≠ aviso al cuidador:** son mecanismos independientes. La parada solo detiene. `notify_emergency_contact` solo envía un Telegram (p. ej. si no encuentra al usuario con una dosis pendiente, o si el usuario lo pide) y nunca detiene el robot.
 
-**Distinción importante — parada de emergencia vs. `notify_emergency_contact`:** son dos mecanismos independientes que no se disparan mutuamente. La parada de emergencia (botón físico o comando de voz offline) **solo** detiene el robot. `notify_emergency_contact` **solo** envía un aviso (Telegram) al cuidador/usuario — por ejemplo cuando no se encuentra al usuario y hay una toma pendiente, o cuando el usuario lo pide explícitamente — y **en ningún caso detiene el funcionamiento del robot**.
+## Decisiones técnicas
 
-**Reanudación tras parada de emergencia:** se acepta cualquiera de dos vías equivalentes — un segundo press del mismo botón físico, o el comando de voz offline "reanudar" (mismo canal Vosk que los comandos de emergencia). Cualquiera de las dos libera el reflejo de parada en el Behavior Tree y permite retomar la actividad previa.
-
-## Decisiones técnicas (Capa 5)
-
-| Función | Decisión | Justificación |
+| Qué | Decisión | ADR |
 |---|---|---|
-| Framework de agencia | **Pydantic AI** (v1.0, abril 2026) | Ligero, agnóstico de proveedor/modelo, tipado fuerte (encaja con mensajes ROS2). LangGraph descartado — su fortaleza (grafos de estado complejos) es redundante porque esa complejidad ya vive en el Behavior Tree |
-| Proveedor LLM | **Groq**, primario | Más rápido disponible (250-500+ tok/s), tier gratuito generoso |
-| Riesgo de plataforma | Groq fue adquirida (Nvidia, inicios 2026), reducción de personal técnico, catálogo curado (~12 modelos), patrón de deprecación documentado | Mitigado por diseño: Pydantic AI agnóstico de proveedor = cambiar proveedor es config, no reescritura |
-| Fallback de modelos | **3 modelos + key principal → 3 modelos + key secundaria** (técnica ya documentada del sistema anterior, se conserva) | Centralizado en una sola función con Pydantic AI en vez de código repetido por servicio |
-| Orden de fallback (3 modelos, misma key) | **1. `openai/gpt-oss-120b`** → **2. `openai/gpt-oss-20b`** → **3. `qwen/qwen3.8-27b`** | Benchmark real hecho en Fase 1 (`scripts/benchmarks/llm/`) — `Llama 3.3 70B Versatile` (decisión original) ya no existe en el catálogo de Groq. Detalle completo y parámetros por modelo (`max_completion_tokens`, `reasoning_effort`, `temperature`/`top_p`) en `DECISIONES_TECNICAS.md` ADR-013 |
-| Framework de Behavior Tree | **py_trees + py_trees_ros** | Python nativo, mismo lenguaje que el agente (Pydantic AI) y el resto del sistema — más fácil de leer/depurar/explicar. BehaviorTree.CPP (C++) descartado por no aportar ventaja real dado que no tocamos el árbol interno de Nav2 |
-| Patrón de integración agente↔BT | Agente **propone** intención (vía tool calls) → BT **ejecuta**, con ramas de mayor prioridad (emergencia, obstáculos) que pueden interrumpir sin consultar al agente | Operacionaliza la separación reactiva/deliberativa. Validado por patrón académico ROS-LLM (traducción de salida LLM a Behavior Tree) |
+| Agente | Pydantic AI | 012 |
+| LLM | Groq: `gpt-oss-120b` → `gpt-oss-20b` → `qwen3.8-27b`, con 2 keys | 013 |
+| Behavior Tree | py_trees + py_trees_ros | 014 |
+| Agente ↔ árbol | El agente propone (tool calls), el árbol dispone | 015 |
+| Escalación a humano | Bot de Telegram (validado en el sistema anterior, por reimplementar) | — |
 
-**Nota técnica — formato Harmony (gpt-oss):** los modelos `openai/gpt-oss-120b` y `openai/gpt-oss-20b` (candidatos principales de la cadena de fallback tras el benchmark en `scripts/benchmarks/llm/`) usan internamente el formato de respuesta "Harmony" de OpenAI, que define roles especiales (`developer` en vez de `system` para instrucciones, canales de razonamiento separados, etc.). **Groq maneja esta traducción automáticamente en su API** — el cliente solo manda mensajes con los roles estándar (`system`/`user`/`assistant`), igual que con cualquier otro modelo. No hay que implementar el formato Harmony a mano en `robot_cognition`.
+Los `gpt-oss` usan internamente el formato "Harmony" de OpenAI, pero Groq hace la traducción: se envían los roles normales (`system`/`user`/`assistant`) y no hay que implementar nada.
 
-## Capa 9 — Integraciones externas
+## Herramientas del agente
 
-| Componente | Decisión |
-|---|---|
-| Escalación a humano | Bot de Telegram — ya resuelto y funcional, confirmado |
-| Otras integraciones | Ninguna adicional definida |
+Solo son herramientas las acciones que el LLM decide invocar. Los reflejos de seguridad (parada, obstáculos) viven en el árbol y nunca pasan por el agente.
 
-## Herramientas del agente (Pydantic AI)
-
-Filtro aplicado: solo son "herramientas" las acciones que el LLM decide activamente invocar según contexto. Los reflejos de seguridad (parada de emergencia, evasión de obstáculos) **nunca** pasan por el agente — viven directo en el Behavior Tree.
+> Las firmas son tentativas: los parámetros exactos se fijan al implementar cada tool.
 
 ### Funcionales
 
 | Herramienta | Qué hace |
 |---|---|
-| `navigate_to(location)` | Navega a un waypoint con nombre vía Nav2 |
-| `find_user()` | Dispara flujo de búsqueda por waypoints |
-| `return_to_base()` | Regreso a carga |
-| `dispense_medication(medication_id)` | Verifica identidad internamente, dispensa, devuelve resultado |
-| `list_medications()` | Consulta medicamentos cargados |
-| `measure_vitals(kind)` | Dispara medición real (bpm/spo2/temperature/all) |
-| `get_last_vitals(usuario_id)` | Consulta última medición guardada |
-| `get_next_dose(usuario_id)` | Próxima dosis y tiempo restante (cálculo en código, no en LLM — evita alucinaciones temporales) |
+| `navigate_to(location)` | Va a un waypoint con nombre (Nav2) |
+| `find_user()` | Busca al usuario recorriendo waypoints (`ROBOT_MOVILIDAD.md`) |
+| `return_to_base()` | Vuelve al punto de carga manual |
+| `dispense_medication(medication_id)` | Verifica identidad, dispensa y devuelve el resultado |
+| `list_medications()` | Lista los medicamentos cargados |
+| `measure_vitals(kind)` | Mide bpm, SpO₂, temperatura o todo |
+| `get_last_vitals(usuario_id)` | Última medición guardada |
+| `get_next_dose(usuario_id)` | Próxima dosis y cuánto falta (calculado en código, no por el LLM) |
 | `get_dose_history(usuario_id, limit)` | Historial de dispensaciones |
-| `save_note(usuario_id, text)` | Bitácora situacional/médica puntual ("durmió mal", "se golpeó la cabeza") → tabla `notas`, timestamped, historial completo |
-| `update_user_context(usuario_id, text)` | Perfil de personalidad/gustos del usuario (comida favorita, equipo de fútbol, etc.) → campo único `usuarios.contexto_relevante`. No es un historial cronológico: el agente recibe el `contexto_relevante` actual como parte del contexto de la tool call y decide si lo mantiene, lo amplía o lo reemplaza; la tool solo sobrescribe el campo con el texto final que el LLM produce, sin concatenar en código |
-| `notify_emergency_contact(reason)` | Notificación real vía Telegram al cuidador/usuario. **No detiene el robot** |
+| `save_note(usuario_id, text)` | Agrega una nota con fecha ("durmió mal") a la bitácora |
+| `update_user_context(usuario_id, text)` | Reescribe el perfil de gustos del usuario. El LLM recibe el perfil actual y devuelve la versión final; la tool solo la guarda |
+| `notify_emergency_contact(reason)` | Envía un Telegram al cuidador. No detiene el robot |
 
-### Demostrativas (opcionales, no afectan funcionalidad núcleo)
+### Demostrativas (opcionales)
 
-| Herramienta | Complejidad | Nota |
+| Herramienta | Esfuerzo | Nota |
 |---|---|---|
-| `approach_person()` | Baja | Reutiliza comportamiento APPROACHING ya construido |
-| `turn_in_place(degrees, direction)` | Muy baja | Rotación pura vía odometría |
-| `extend_vitals_arm()` | Trivial | Aísla movimiento del servo MG996R ya existente |
-| `follow_person(duration_s)` | **Alta** | La más costosa — última prioridad |
-| `greet()` | Baja | Combinación: frase + expresión facial amigable + ligero movimiento del brazo de signos vitales (el robot no tiene brazo/cuello motorizado dedicado a saludar) |
-| `describe_surroundings(question)` | **Exploratoria** | Responde preguntas tipo "¿cómo estoy vestido?" o "¿qué puedes ver?" tomando una foto con la cámara y usando un modelo de visión (candidato: Qwen VL vía Groq, mismo proveedor que el resto de la cadena de fallback). Depende de un benchmark aparte (calidad de descripción, latencia) todavía no hecho — ver nota abajo |
+| `approach_person()` | Bajo | Acercamiento validado en el sistema anterior, por reimplementar |
+| `turn_in_place(degrees, direction)` | Muy bajo | Giro sobre su eje con odometría |
+| `extend_vitals_arm()` | Trivial | Mueve solo el servo del brazo |
+| `follow_person(duration_s)` | Alto | La más costosa; última prioridad |
+| `greet()` | Bajo | Frase + cara amigable + un leve movimiento del brazo de signos vitales |
+| `describe_surroundings(question)` | Exploratoria | Responder "¿qué ves?" con una foto y un modelo de visión (candidato: Qwen VL en Groq). Sin decidir, depende de un benchmark de calidad y latencia. Si pasa, falta definir si la descripción vuelve al LLM principal (mantiene la personalidad y el validador) o si Qwen VL responde directo |
 
-**Comportamientos compuestos (combinan herramientas atómicas, no son herramientas nuevas):** `spin_and_greet` (turn_in_place + greet, útil para arranque de demo), mostrar compartimentos de medicamentos en pantalla al usar `list_medications`. Si la feature bonus de localización de fuente sonora se construye (ver `ROBOT_VOZ.md` y ADR-033), `turn_in_place` también podría reutilizarse para orientar al robot hacia el hablante — no se crearía una tool nueva para eso.
+Comportamientos compuestos (no son tools nuevas): `spin_and_greet` (giro + saludo para arrancar la demo) y mostrar los compartimentos en pantalla al usar `list_medications`. Si se construye la localización de voz (ADR-033), `turn_in_place` sirve para girar hacia quien habla.
 
-**Nota de diseño — `describe_surroundings` (exploratoria, no decidida):** surge de aprovechar que Qwen ya es parte de la cadena de fallback de texto (`qwen/qwen3.8-27b`, tercer fallback — ver Decisiones técnicas) y también tiene una variante con reconocimiento de imágenes. Dos formas de implementarlo, todavía sin decidir cuál (o si directamente se descarta por alcance de prototipo):
-1. **Dos pasos:** la tool toma la foto, Qwen VL la describe en texto, y ese texto se inyecta de vuelta al LLM principal (el que esté atendiendo la conversación) para que responda en su propia personalidad.
-2. **Un paso:** se le pasa a Qwen VL la foto junto con la pregunta original del usuario y responde directamente, sin pasar por el LLM principal — más simple y potencialmente más rápido, pero la respuesta no pasa por la personalidad/validador ético estructural del agente principal a menos que se replique ahí también.
+### Reglas de implementación
 
-Pendiente: benchmark de calidad/latencia de Qwen VL antes de decidir cuál de las dos formas (o ninguna, si no alcanza el tiempo).
+- **Origen de los IDs:** en la descripción de cada parámetro que sea un ID de la BD, decir de dónde sale (p. ej. "`medication_id`: un id devuelto por `list_medications`"), para que el LLM no lo invente a partir de la conversación.
+- **Validar antes de actuar:** todo ID que proponga el LLM (medicamento, usuario, waypoint) se comprueba contra la BD antes de ejecutar. Así se traduce "la de la presión" a un `medication_id` sin confiar ciegamente en el modelo.
 
-**Requisito de implementación — descripciones de parámetros ID en las 12 tools funcionales:** para cada parámetro que sea un ID proveniente de la base de datos (`medication_id`, `usuario_id`, nombres de waypoint en `location`, etc.), la `description` del JSON Schema que Pydantic AI genera para la tool debe indicar explícitamente **de dónde sale ese valor**, no solo su tipo de dato — ej. `medication_id: int` con descripción "debe ser un id devuelto por `list_medications`", no solo "id del medicamento". Esto le da al LLM la procedencia correcta del valor en el momento de decidir la tool call, en vez de que la infiera del texto de la conversación.
+## Pendientes
 
-**Nota de diseño — traducción de lenguaje natural a `medication_id`:** `dispense_medication` recibe un `medication_id`, no el nombre hablado — la traducción de lenguaje natural ("la de la presión") al ID correcto la resuelve el LLM con el contexto de `list_medications` en su prompt. **Validación obligatoria:** el `medication_id` (y en general cualquier valor fijo proveniente de la base de datos — IDs de medicamento, de usuario, de waypoint, etc.) que el LLM incluya en una llamada a herramienta debe validarse contra la base de datos antes de ejecutar la acción, en vez de confiar en que el LLM lo generó correctamente — mismo principio del validador ético estructural, aplicado aquí como validación estructural de datos.
-
----
-
-## Información faltante / pendiente de revisión
-
-- **Diseño concreto del árbol raíz de py_trees** (ramas exactas, orden de prioridad detallado): marcado como pendiente explícito, a resolver en Fase 1.
-- **Resolución final de la traducción NL → `medication_id`**: el principio está definido, falta el diseño concreto del prompt/contexto y de la validación.
-- **Caso de dos usuarios detectados simultáneamente** (ver también `ROBOT_PERCEPCION.md`): no se define a cuál atiende el agente ni cómo se resuelve el conflicto de identidad.
-- **Especificación exacta del validador ético estructural**: se define su propósito (nunca diagnosticar/prescribir) pero no las reglas/patrones concretos que debe rechazar, ni el mensaje de fallback cuando bloquea una respuesta.
-- **Rangos de referencia de signos vitales** que disparan la reacción visual "fuera de rango" — no están enumerados (bpm, SpO2, temperatura).
-- **Ubicación final del Módulo 5 y Capa 9**: se incluyeron aquí por no tener archivo dedicado en la separación solicitada — confirmar si esta ubicación es correcta o si merecen archivo propio.
-- **Detalle de `save_note` y `update_user_context`**: el propósito de cada una ya está diferenciado (bitácora situacional/médica vs. perfil de personalidad), pero falta especificar límite de longitud de texto en ambas, y el mecanismo exacto para inyectar el `contexto_relevante` actual en el prompt de `update_user_context` antes de que el LLM decida el texto de reemplazo.
-- **`describe_surroundings` (herramienta de visión vía Qwen VL)**: idea exploratoria, no decidida — depende de un benchmark aparte de calidad/latencia del modelo de visión que todavía no se ha hecho. Ver nota de diseño en la sección de herramientas demostrativas.
+- **Reanudar tras una parada:** el botón NC devuelve la corriente al girarlo, el TTP223 reanuda con una segunda pulsación y está previsto el comando de voz "reanudar". Falta decidir qué vía libera la parada en el árbol según el origen: ¿basta con girar el botón NC o hay que confirmar? ¿"reanudar" por voz puede liberar una parada hecha con el TTP223?
+- **Árbol raíz de py_trees:** ramas y orden exacto de prioridades (Fase 1).
+- **Traducción de lenguaje natural a `medication_id`:** falta el diseño concreto del prompt y la validación.
+- **Dos o más usuarios a la vez:** percepción reporta a todos (`ROBOT_PERCEPCION.md`); falta decidir a quién atiende el agente, por ejemplo para dispensar.
+- **Validador ético:** reglas concretas y mensaje de respuesta cuando bloquea algo.
+- **Rangos de referencia** de bpm, SpO₂ y temperatura para marcar "fuera de rango".
+- **`save_note` y `update_user_context`:** límite de longitud y cómo se pasa el perfil actual al LLM.
+- **`describe_surroundings`:** benchmark de Qwen VL.
